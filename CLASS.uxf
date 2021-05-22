@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="14.3.0">
+  <zoom_level>8</zoom_level>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>576</x>
+      <y>168</y>
+      <w>168</w>
+      <h>104</h>
+    </coordinates>
+    <panel_attributes>Instruction
+--
+index : int
+opcode : Opcode
+r1 : Register
+r2 : Register
+r3 : Register
+immediate : int</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>800</x>
+      <y>168</y>
+      <w>168</w>
+      <h>80</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;enum&gt;&gt;
+Register
+--
+ALLREGS</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1008</x>
+      <y>168</y>
+      <w>240</w>
+      <h>80</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;enum:Mapping[str, Tuple[int, bool]] &gt;&gt;
+Opcode
+--
+ALLOPCODES</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLPackage</id>
+    <coordinates>
+      <x>544</x>
+      <y>120</y>
+      <w>952</w>
+      <h>568</h>
+    </coordinates>
+    <panel_attributes>Tracer</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>576</x>
+      <y>336</y>
+      <w>312</w>
+      <h>152</h>
+    </coordinates>
+    <panel_attributes>Tracer
+--
+trace : Map[Instruction, Map[Register,List[Variables]]]
+offsets : Map[str, int] 
+instructions : Instruction[]
+
+--
+Tracer(offsets : Map[str, int], instructions : Instruction[])
+startTrace()
+getVariable(instr : Instruction)
+checkBefore(reg : Register, istr : Instruction)
+checkAfter(reg : Register, istr : Instruction)</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLPackage</id>
+    <coordinates>
+      <x>0</x>
+      <y>192</y>
+      <w>432</w>
+      <h>224</h>
+    </coordinates>
+    <panel_attributes>Edg</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>32</x>
+      <y>232</y>
+      <w>168</w>
+      <h>152</h>
+    </coordinates>
+    <panel_attributes>EDG
+--
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>224</x>
+      <y>232</y>
+      <w>168</w>
+      <h>152</h>
+    </coordinates>
+    <panel_attributes>OffsetFinder
+--
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>424</x>
+      <y>384</y>
+      <w>136</w>
+      <h>32</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-
+DUMP</panel_attributes>
+    <additional_attributes>150.0;20.0;10.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>424</x>
+      <y>336</y>
+      <w>136</w>
+      <h>32</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-
+VarOffsets</panel_attributes>
+    <additional_attributes>150.0;20.0;10.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLPackage</id>
+    <coordinates>
+      <x>1800</x>
+      <y>208</y>
+      <w>552</w>
+      <h>304</h>
+    </coordinates>
+    <panel_attributes>CalcMetrics</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1488</x>
+      <y>360</y>
+      <w>328</w>
+      <h>32</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-
+trace : Map[Instruction, Map[Register,List[Variables]]]</panel_attributes>
+    <additional_attributes>390.0;20.0;10.0;20.0</additional_attributes>
+  </element>
+</diagram>
