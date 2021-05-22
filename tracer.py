@@ -9,4 +9,24 @@ instructions -- the instructions of the program
 
 
 class Tracer:
-    node:
+    node = {}
+    offsets = {}  # initialize by file
+    instruction = []  # initialize by file
+
+    def __init__(self, instruction, register, variables):
+        self.node = {instruction, {register, variables}}
+    """
+    start the tracing of important value in the code by checking lw offset and comparing this to 
+    offsets that we received from the dump
+    """
+    def start_trace(self):
+        pass
+
+    def get_variable(self, instruction):
+        pass
+
+    def check_before(self, register, instruction):
+        pass
+
+    def check_after(self, register, instruction):
+        pass
