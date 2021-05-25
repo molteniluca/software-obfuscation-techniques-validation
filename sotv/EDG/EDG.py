@@ -1,19 +1,24 @@
-import gdb
 import json
 import re
+from os import system
+from pygdbmi.gdbcontroller import GdbController
 
+
+gdbmi = {}
 
 def dumpCurrent():
     dump = {}
     dump["registers"] = {}
 
-    instr = gdb.execute("x/i $pc", to_string=True)
+    instr = gdbmi.write("x/i $pc")[1]["payload"]
 
     # Pretty print the next instruction pointed by the program counter
     dump["instruction"] = instr[instr.index(">:") + 3:-1].replace("\t", " ")
+    arr=[]
+    for i in range(33):
+        arr.append(i)
 
-    for reg in regs:
-        dump["registers"][reg] = hex(gdb.parse_and_eval("$" + reg))
+    dump["registers"][regs[i]] = gdbmi.write("-data-list-register-names " + str(arr))
 
     return dump
 
@@ -21,16 +26,17 @@ def dumpCurrent():
 def stepUntilEndAndDump(mainFunction):
     dump = {}
     while True:
-        instr = gdb.execute("x/i $pc", to_string=True)
-
+        instr = gdbmi.write("x/i $pc")
         # Regex that searches the string between "<" and ">" (<function + offset>)
+        instr = instr[1]["payload"]
+        print(instr)
         line = re.search('<(.+?)>', instr).group(1)
         dump[line] = dumpCurrent()
 
         # Breaks only if it is in function start and next instruction is ret
         if "<" + mainFunction in instr and "ret" in instr:
             break
-        gdb.execute("stepi")  # Step to the next machine instruction
+        gdbmi.write("stepi")  # Step to the next machine instruction
 
     return dump
 
@@ -41,25 +47,28 @@ def saveToFile(dump):
 
 
 def initializeDebug(mainFunction):
+    system("qemu-riscv64-static -g 1234 ./a.out &")  # Starts qemu session in background
     # Imports in gdb the executable (For some reason qemu doesnt send this info trough gdbserver)
-    gdb.execute("file a.out")
+    gdbmi.write("file a.out")
 
-    gdb.execute("target remote :1234")  # Connects to the qemu gdbserver
+    gdbmi.write("target remote :1234")  # Connects to the qemu gdbserver
 
-    gdb.execute("set pagination off")  # Avoid interruption for command result pagination in gdb
-
-    gdb.execute("b *" + mainFunction)  # Sets a breakpoint at the function _start
-    gdb.execute("continue")  # Continue until the breakpoint
+    gdbmi.write("b *" + mainFunction)  # Sets a breakpoint at the function _start
+    gdbmi.write("continue")  # Continue until the breakpoint
 
 
-config_file = open("EDG_conf.json", "r")
-config = config_file.read()
-config = json.loads(config)
+if __name__ == "__main__":
+    config_file = open("EDG_conf.json", "r")
+    config = config_file.read()
+    config = json.loads(config)
 
-regs = config["registers"]
-initializeDebug(config["mainFunction"])
+    gdbmi = GdbController(command=["gdb-multiarch", "--interpreter=mi3"],time_to_check_for_additional_output_sec=0.01)
 
-dump = stepUntilEndAndDump(config["mainFunction"])
+    initializeDebug(config["mainFunction"])
+    regs=gdbmi.write("-data-list-register-names")[0]["payload"]["register-names"][0:33]
 
-saveToFile(dump)
-gdb.execute("quit")  # Exits gdb
+    dump = stepUntilEndAndDump(config["mainFunction"])
+
+    saveToFile(dump)
+    gdbmi.write("quit")  # Exits gdb
+
