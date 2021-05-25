@@ -1,4 +1,7 @@
 {
     "registers": ["ra", "sp", "gp", "tp", "t0", "t1", "t2", "fp", "s1", "a0", "a1", "a2", "a3", "a4", "a5", "a6", "a7", "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s9", "s10", "s11", "t3", "t4", "t5", "t6", "pc"],
-    "mainFunction": "main"
+    "main_function": "main",
+    "c_variables": ["main::swap", "main::array", "main::n", "main::c", "main::d", "main::n"],
+    "dump_file": "dump.json",
+    "exec_file": "a.out"
 }

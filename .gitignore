@@ -1,3 +1,5 @@
 a.out
 dump.json
 .gdbinit
+out.s
+out_no_symbols.s

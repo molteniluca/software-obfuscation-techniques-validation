@@ -1,6 +1,6 @@
 int fun(int a);
 
-int _start(){
+int main(){
 	int a=0x27;
 	a++;
 	a--;
