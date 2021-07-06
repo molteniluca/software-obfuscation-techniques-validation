@@ -13,7 +13,8 @@ def main():
             utils.compile_asm(argv[1], "out.s")
             utils.compile_exec(argv[1], "a.out")
             utils.compile_asm_nosymbols(argv[1], "out_no_symbols.s")
-            pprint(offset_finder.offset_finder(EDG.edg(["a.out"])))
+            print("Dump length:"+str(len(EDG.edg(["a.out"]))))
+            pprint(offset_finder.offset_finder("a.out"))
     else:
         print("Error in parameters (-h for help)")
         exit(1)
