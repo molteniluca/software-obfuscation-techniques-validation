@@ -26,3 +26,6 @@ class Instruction:
         self.r2 = r2
         self.r3 = r3
         self.immediate = immediate
+
+    def modified_register(self):
+        return self.r1

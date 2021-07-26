@@ -20,7 +20,12 @@ class Tracer:
     offsets that we received from the dump
     """
     def start_trace(self):
-        pass
+        for ins in self.instruction:
+            if ins.opcode.str == 'lw':
+                for ofs in self.offsets:
+                    if ofs in self.offsets:
+                        self.__init__(ins, ins.modified_register, ofs.str)
+                        self.check_after(ins.modified_register, ins)
 
     def get_variable(self, instruction):
         pass
