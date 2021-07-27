@@ -11,7 +11,6 @@
     </coordinates>
     <panel_attributes>Instruction
 --
-index : int
 opcode : Opcode
 r1 : Register
 r2 : Register
@@ -50,7 +49,7 @@ ALLOPCODES</panel_attributes>
   <element>
     <id>UMLPackage</id>
     <coordinates>
-      <x>544</x>
+      <x>528</x>
       <y>120</y>
       <w>952</w>
       <h>568</h>
@@ -68,12 +67,13 @@ ALLOPCODES</panel_attributes>
     </coordinates>
     <panel_attributes>Tracer
 --
-trace : Map[Instruction, Map[Register,List[Variables]]]
-offsets : Map[str, int] 
-instructions : Instruction[]
+trace : Map[str(Ref instr), Map[Register,List[str(Variables)]]]
+function_offsets : Dict[str, Dict[str, int]] 
+global_offsets : Dict[str, int]
+execution_dump : ExecutionDump
 
 --
-Tracer(offsets : Map[str, int], instructions : Instruction[])
+Tracer(function_offsets : Dict[str, Dict[str, int]], execution_dump : ExecutionDump)
 startTrace()
 getVariable(instr : Instruction)
 checkBefore(reg : Register, istr : Instruction)
@@ -86,7 +86,7 @@ checkAfter(reg : Register, istr : Instruction)</panel_attributes>
       <x>0</x>
       <y>192</y>
       <w>432</w>
-      <h>224</h>
+      <h>424</h>
     </coordinates>
     <panel_attributes>Edg</panel_attributes>
     <additional_attributes/>
@@ -122,24 +122,24 @@ checkAfter(reg : Register, istr : Instruction)</panel_attributes>
     <coordinates>
       <x>424</x>
       <y>384</y>
-      <w>136</w>
+      <w>120</w>
       <h>32</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;-
 DUMP</panel_attributes>
-    <additional_attributes>150.0;20.0;10.0;20.0</additional_attributes>
+    <additional_attributes>130.0;20.0;10.0;20.0</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
       <x>424</x>
       <y>336</y>
-      <w>136</w>
+      <w>120</w>
       <h>32</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;-
 VarOffsets</panel_attributes>
-    <additional_attributes>150.0;20.0;10.0;20.0</additional_attributes>
+    <additional_attributes>130.0;20.0;10.0;20.0</additional_attributes>
   </element>
   <element>
     <id>UMLPackage</id>
@@ -155,13 +155,48 @@ VarOffsets</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>1488</x>
+      <x>1472</x>
       <y>360</y>
-      <w>328</w>
+      <w>344</w>
       <h>32</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;-
 trace : Map[Instruction, Map[Register,List[Variables]]]</panel_attributes>
-    <additional_attributes>390.0;20.0;10.0;20.0</additional_attributes>
+    <additional_attributes>410.0;20.0;10.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>32</x>
+      <y>416</y>
+      <w>184</w>
+      <h>152</h>
+    </coordinates>
+    <panel_attributes>ExecutionDump
+--
+instructions : Dict[str, Instruction]
+dump : DumpLine[]
+--
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>232</x>
+      <y>416</y>
+      <w>168</w>
+      <h>152</h>
+    </coordinates>
+    <panel_attributes>DumpLine
+--
+registers : Dict[str, int]
+SP_offsets : Dict[str, int]
+FP_offsets : Dict[str, int]
+var_values : Dict[str, int]
+next_instruction : str
+ref_next_instruction : str
+</panel_attributes>
+    <additional_attributes/>
   </element>
 </diagram>
