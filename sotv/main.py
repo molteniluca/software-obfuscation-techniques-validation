@@ -14,7 +14,8 @@ def main():
             utils.compile_exec(argv[1], "a.out")
             utils.compile_asm_nosymbols(argv[1], "out_no_symbols.s")
             execution_dump = edg.edg(["a.out"])
-            tracer = Tracer(offset_finder.offset_finder("a.out"), execution_dump)
+            local_vars, global_vars = offset_finder.offset_finder("a.out")
+            tracer = Tracer(local_vars, global_vars, execution_dump)
             tracer.start_trace()
     else:
         print("Error in parameters (-h for help)")

@@ -66,10 +66,10 @@ def decode_variable(cu, dwarf, variable, location_parser):
                 described = describe_DWARF_expr(loc.loc_expr, dwarf.structs, cu.cu_offset)
                 if "DW_OP_fbreg" in described:
                     return variable.attributes["DW_AT_name"].value.decode(),\
-                       int(described.split("(DW_OP_fbreg: ")[1][:-1], 16)
+                       int(described.split("(DW_OP_fbreg: ")[1][:-1])
                 elif "DW_OP_addr" in described:
                     return variable.attributes["DW_AT_name"].value.decode(),\
-                       int(described.split("(DW_OP_addr: ")[1][:-1], 16)
+                       int(described.split("(DW_OP_addr: ")[1][:-1],16)
 
 
 def to_gdb_notation(function_vars, global_vars) -> List[str]:
