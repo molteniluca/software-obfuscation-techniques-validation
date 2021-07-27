@@ -30,11 +30,12 @@ def offset_finder(filename: str) -> object:
                     else:
                         for variable in DIE.iter_children():
                             decoded = decode_variable(CU, dwarf, variable, location_parser)
-                            try:
-                                tmp = function_vars[DIE.attributes["DW_AT_name"].value.decode()]
-                            except KeyError:
-                                function_vars[DIE.attributes["DW_AT_name"].value.decode()] = {}
-                            function_vars[DIE.attributes["DW_AT_name"].value.decode()][decoded[0]]=decoded[1]
+                            if decoded is not None:
+                                try:
+                                    function_vars[DIE.attributes["DW_AT_name"].value.decode()]
+                                except KeyError:
+                                    function_vars[DIE.attributes["DW_AT_name"].value.decode()] = {}
+                                function_vars[DIE.attributes["DW_AT_name"].value.decode()][decoded[0]] = decoded[1]
 
             return function_vars, global_vars
         else:
