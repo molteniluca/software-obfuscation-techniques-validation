@@ -2,16 +2,32 @@ from elftools.common.py3compat import itervalues
 from elftools.dwarf.descriptions import describe_DWARF_expr
 from elftools.dwarf.locationlists import LocationParser, LocationExpr
 from elftools.elf.elffile import ELFFile
+from typing import Tuple, Dict, List
+
+from sotv.EDG.exceptions import ELFWithoutSymbols
+from sotv.EDG.exceptions import DumpWithoutSymbols
 
 
-def offset_finder_from_dump(dump: list) -> object:
+def offset_finder_from_dump(dump: list) -> Dict[str, int]:
+    """
+    Finds the variable offsets from an execution dump
+    @param dump: The execution dump
+    @return: A dictionary in which the keys are the variables name in gdb notation and the values are the offsets
+    """
     for i in range(len(dump)):
         if "addi s0,sp," in dump[i]["next_instruction"]:
             return dump[i + 1]["FP_offsets"]
-    return None
+    raise DumpWithoutSymbols
 
 
-def offset_finder(filename: str) -> object:
+def offset_finder(filename: str) -> Tuple[Dict[str, dict], Dict[str, int]]:
+    """
+    Finds variables offset from a elf file
+    @param filename: path of the elf file
+    @return: a tuple of two elements, the first is a dictionary in which the keys are the functions and the values are
+            the lists of variables, the second is a list of global variables
+    """
+
     with open(filename, "rb") as file:
         elf_file = ELFFile(file)
 
@@ -39,7 +55,7 @@ def offset_finder(filename: str) -> object:
 
             return function_vars, global_vars
         else:
-            return None
+            raise ELFWithoutSymbols
 
 
 def decode_variable(cu, dwarf, variable, location_parser):
@@ -56,5 +72,25 @@ def decode_variable(cu, dwarf, variable, location_parser):
                        int(described.split("(DW_OP_addr: ")[1][:-1], 16)
 
 
+def to_gdb_notation(function_vars, global_vars) -> List[str]:
+    """
+    This method transforms a set of variables in gdb notation variables
+    @param function_vars: The variables inside a function
+    @param global_vars: The global functions
+    @return: The list containing the variables in gdb-like notation
+    """
+    gdb_symbols = []
+
+    for fun in function_vars:
+        for var in function_vars[fun]:
+            gdb_symbols.append(fun+"::"+var)
+
+    for var in global_vars:
+        gdb_symbols.append(var)
+
+    return gdb_symbols
+
+
 if __name__ == "__main__":
     print(offset_finder("../a.out"))
+    print(to_gdb_notation(*offset_finder("../a.out")))

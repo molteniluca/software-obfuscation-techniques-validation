@@ -4,8 +4,9 @@ import re
 
 
 def dump_current():
-    dump_step = {"registers": {}, "SP_offsets": {}, "FP_offsets": {}}
+    dump_step = {"registers": {}, "SP_offsets": {}, "FP_offsets": {}, "var_values": {}}
 
+    # Gets next executing instruction
     instr = gdb.execute("x/i $pc", to_string=True)
 
     # Pretty print the next instruction pointed by the program counter
@@ -14,18 +15,26 @@ def dump_current():
     # Regex that searches the string between "<" and ">" (<function + offset>)
     dump_step["ref_next_instruction"] = re.search('<(.+?)>', instr).group(1)
 
+    # Dumps all registers
     for reg in regs:
         dump_step["registers"][reg] = int(gdb.parse_and_eval("$" + reg))
 
     for var in c_variables:
         try:
+            # Computes the offset between the variable address and SP
             dump_step["SP_offsets"][var] = -int(gdb.parse_and_eval("$sp - (void *)&" + var))
         except gdb.error:
-            dump_step["SP_offsets"][var] = None
+            pass
         try:
+            # Computes the offset between the variable address and FP
             dump_step["FP_offsets"][var] = -int(gdb.parse_and_eval("$fp - (void *)&" + var))
         except gdb.error:
-            dump_step["SP_offsets"][var] = None
+            pass
+        try:
+            # Gets the variable value
+            dump_step["var_values"][var] = int(gdb.parse_and_eval(var))
+        except gdb.error:
+            pass
 
     return dump_step
 
@@ -61,7 +70,7 @@ def initialize_debug():
 
 
 if __name__ == "__main__":
-    config_file = open("EDG/EDG_conf.json", "r")
+    config_file = open("EDG/tmp/EDG_conf.json", "r")
     config = config_file.read()
     config = json.loads(config)
 

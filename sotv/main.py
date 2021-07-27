@@ -13,7 +13,9 @@ def main():
             utils.compile_asm(argv[1], "out.s")
             utils.compile_exec(argv[1], "a.out")
             utils.compile_asm_nosymbols(argv[1], "out_no_symbols.s")
-            print("Dump length:"+str(len(EDG.edg(["a.out"]))))
+            dump, instructions = EDG.edg(["a.out"])
+            print("Dump length:"+str(len(dump)))
+            print("Number of unique instructions:"+str(len(instructions)))
             pprint(offset_finder.offset_finder("a.out"))
     else:
         print("Error in parameters (-h for help)")

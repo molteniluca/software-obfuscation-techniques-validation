@@ -1,0 +1,2 @@
+class DumpWithoutSymbols(Exception):
+    pass
