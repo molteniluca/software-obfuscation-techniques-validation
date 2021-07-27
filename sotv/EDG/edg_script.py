@@ -69,6 +69,7 @@ def initialize_debug():
     gdb.execute("continue")  # Continue until the breakpoint
 
 
+# This shall be executed only by gdb
 if __name__ == "__main__":
     config_file = open("EDG/tmp/EDG_conf.json", "r")
     config = config_file.read()

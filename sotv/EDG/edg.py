@@ -1,6 +1,8 @@
 import json
 import subprocess
-from typing import Tuple, Dict
+from typing import Dict
+
+from sotv.EDG.execution_dump import ExecutionDump
 from sotv.EDG.offset_finder import to_gdb_notation, offset_finder
 from sotv.Tracer.instruction import Instruction
 
@@ -10,7 +12,7 @@ dump_file = "dump.json"
 config_file = "EDG_conf.json"
 
 
-def edg(executable_params: list) -> Tuple[object, Dict[str, Instruction]]:
+def edg(executable_params: list) -> ExecutionDump:
     """
     This functions performs an execution and dumps data
     @param executable_params: Argv, a list containing the executable name and parameters
@@ -31,13 +33,13 @@ def edg(executable_params: list) -> Tuple[object, Dict[str, Instruction]]:
 
     # Starts qemu session in background
     subprocess.Popen(["qemu-riscv64-static", "-g", "1234"] + executable_params)
-    subprocess.run(["gdb-multiarch", "-command=./EDG/EDG_script.py", "-batch-silent"])
+    subprocess.run(["gdb-multiarch", "-command=./EDG/edg_script.py", "-batch-silent"])
 
     dump = json.loads(open(tmp_folder + dump_file, "r").read())
 
     instructions = parse_instructions(dump)
 
-    return dump, instructions
+    return ExecutionDump(instructions, dump)
 
 
 def parse_instructions(dump) -> Dict[str, Instruction]:
@@ -75,4 +77,4 @@ def parse_instructions(dump) -> Dict[str, Instruction]:
 if __name__ == "__main__":
     # Starts qemu session in background
     subprocess.Popen(["qemu-riscv64-static", "-g", "1234", "./a.out"])
-    subprocess.run(["gdb-multiarch", "-command=EDG_script.py", "-batch-silent"])
+    subprocess.run(["gdb-multiarch", "-command=edg_script.py", "-batch-silent"])

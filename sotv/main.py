@@ -1,7 +1,7 @@
-from pprint import pprint
 from sys import argv
 import utils
-from sotv.EDG import offset_finder, EDG
+from sotv.EDG import offset_finder, edg
+from sotv.Tracer.tracer import Tracer
 
 
 def main():
@@ -13,10 +13,9 @@ def main():
             utils.compile_asm(argv[1], "out.s")
             utils.compile_exec(argv[1], "a.out")
             utils.compile_asm_nosymbols(argv[1], "out_no_symbols.s")
-            dump, instructions = EDG.edg(["a.out"])
-            print("Dump length:"+str(len(dump)))
-            print("Number of unique instructions:"+str(len(instructions)))
-            pprint(offset_finder.offset_finder("a.out"))
+            execution_dump = edg.edg(["a.out"])
+            tracer = Tracer(offset_finder.offset_finder("a.out"), execution_dump)
+            tracer.start_trace()
     else:
         print("Error in parameters (-h for help)")
         exit(1)
