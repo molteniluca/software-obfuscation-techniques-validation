@@ -22,15 +22,18 @@ def offset_finder(filename: str) -> object:
             location_parser = LocationParser(dwarf.location_lists())
 
             for CU in dwarf.iter_CUs():
-                for DIE in CU.iter_DIEs():
-                    if DIE.tag == "DW_TAG_variable":
-                        for attr in itervalues(DIE.attributes):
+                for functionDie in CU.get_top_DIE().iter_children():
+                    for variable in functionDie.iter_children():
+                        for attr in itervalues(variable.attributes):
                             if location_parser.attribute_has_location(attr, CU['version']):
                                 loc = location_parser.parse_from_attribute(attr, CU['version'])
                                 if isinstance(loc, LocationExpr):
-                                    values[DIE.attributes["DW_AT_name"].value.decode()] = int(describe_DWARF_expr(
+                                    try:
+                                        tmp=values[functionDie.attributes["DW_AT_name"].value.decode()]
+                                    except:
+                                        values[functionDie.attributes["DW_AT_name"].value.decode()] = {}
+                                    values[functionDie.attributes["DW_AT_name"].value.decode()][variable.attributes["DW_AT_name"].value.decode()] = int(describe_DWARF_expr(
                                         loc.loc_expr, dwarf.structs, CU.cu_offset).split("(DW_OP_fbreg: ")[1][:-1])
-
             return values
         else:
             return None
