@@ -6,26 +6,28 @@ node --  a map[at this instruction, map[in this registers, there are this list o
 offsets -- a map[variables, offset with fp]
 instructions -- the instructions of the program
 """
+from sotv.EDG import execution_dump
 
 
 class Tracer:
-    node = {}
-    offsets = {}  # initialize by file
-    instruction = []  # initialize by file
+    tracing_graph: dict  # {str(ref ins), { register, [str(var)]}
+    function_offsets: dict  # initialize by file
+    global_offsets: dict
+    execution_dump: execution_dump.ExecutionDump
 
-    def __init__(self, instruction, register, variables):
-        self.node = {instruction, {register, variables}}
     """
     start the tracing of important value in the code by checking lw offset and comparing this to 
     offsets that we received from the dump
     """
+
     def start_trace(self):
-        for ins in self.instruction:
-            if ins.opcode.str == 'lw':
-                for ofs in self.offsets:
-                    if ofs in self.offsets:
-                        self.__init__(ins, ins.modified_register, ofs.str)
-                        self.check_after(ins.modified_register, ins)
+        for ref in self.execution_dump.dump:
+            temp_ins = self.execution_dump.instructions.get(ref.ref_next_instruction)
+            if temp_ins.opcode.str == 'lw':
+                for ofs in self.function_offsets:
+                    if ofs in self.function_offsets:
+                        self.tracing_graph[ref.ref_next_instruction] = {temp_ins.modified_register, ofs.variables}
+                        self.check_after(temp_ins.modified_register, temp_ins)
 
     def get_variable(self, instruction):
         pass
