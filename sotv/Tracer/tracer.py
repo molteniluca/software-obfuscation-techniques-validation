@@ -36,4 +36,13 @@ class Tracer:
         pass
 
     def check_after(self, register, instruction):
-        pass
+        for ref in self.execution_dump.dump:
+            temp_ins = self.execution_dump.instructions.get(ref.ref_next_instruction)
+            if temp_ins == instruction:
+                for reference in self.execution_dump.dump:
+                    temp_ins = self.execution_dump.instructions.get(reference.ref_next_instruction)
+                    """
+                    cases to be handle:
+                    move case -> check if r2 is equals to register than add r1 to the graph
+                    read case -> do nothing
+                    """
