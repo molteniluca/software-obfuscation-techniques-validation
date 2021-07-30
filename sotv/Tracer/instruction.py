@@ -1,4 +1,5 @@
 from sotv.Tracer.structures import opcodes, registers
+from instruction_adapter import AdapterInterface
 
 
 class Instruction:
@@ -16,6 +17,7 @@ class Instruction:
     r2: registers
     r3: registers
     immediate: int
+    ins_adapter: None
 
     def __init__(self, opcode, r1, r2, r3, immediate):
         self.opcode = opcode

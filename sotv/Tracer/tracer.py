@@ -27,22 +27,18 @@ class Tracer:
                 for ofs in self.function_offsets:
                     if ofs in self.function_offsets:
                         self.tracing_graph[ref.ref_next_instruction] = {temp_ins.modified_register, ofs.variables}
-                        self.check_after(temp_ins.modified_register, temp_ins)
+                        self.check_after(temp_ins.modified_register, ofs.variables, temp_ins)
 
     def get_variable(self, instruction):
         pass
 
-    def check_before(self, register, instruction):
+    def check_before(self, register, variable, instruction):
         pass
 
-    def check_after(self, register, instruction):
+    def check_after(self, register, variable, instruction):
         for ref in self.execution_dump.dump:
             temp_ins = self.execution_dump.instructions.get(ref.ref_next_instruction)
             if temp_ins == instruction:
                 for reference in self.execution_dump.dump:
                     temp_ins = self.execution_dump.instructions.get(reference.ref_next_instruction)
-                    """
-                    cases to be handle:
-                    move case -> check if r2 is equals to register than add r1 to the graph
-                    read case -> do nothing
-                    """
+                    temp_ins.ins_adapter.adapt(register, variable, int(reference), self) #TODO the conversion from reference to int is wrong
