@@ -26,7 +26,7 @@ class Tracer:
             if temp_ins.opcode.str == 'lw':
                 for ofs in self.function_offsets:
                     if ofs in self.function_offsets:
-                        self.tracing_graph[ref.ref_next_instruction] = {temp_ins.modified_register, ofs.variables}
+                        self.tracing_graph[ref.ref_next_instruction] = {temp_ins.modified_register, ofs.variables}  # this assignment is a place holder because is probably wrong
                         self.check_after(temp_ins.modified_register, ofs.variables, temp_ins)
 
     def get_variable(self, instruction):
@@ -41,4 +41,7 @@ class Tracer:
             if temp_ins == instruction:
                 for reference in self.execution_dump.dump:
                     temp_ins = self.execution_dump.instructions.get(reference.ref_next_instruction)
-                    temp_ins.ins_adapter.adapt(register, variable, int(reference), self) #TODO the conversion from reference to int is wrong
+                    temp_ins.ins_adapter.adapt(register, variable, reference,
+                                               self)
+                    if temp_ins == temp_ins.modified_register:
+                        return
