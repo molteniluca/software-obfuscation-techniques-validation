@@ -17,6 +17,7 @@ def main():
             local_vars, global_vars = offset_finder.offset_finder("a.out")
             tracer = Tracer(local_vars, global_vars, execution_dump)
             tracer.start_trace()
+            input()
     else:
         print("Error in parameters (-h for help)")
         exit(1)

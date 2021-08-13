@@ -6,13 +6,17 @@ node --  a map[at this instruction, map[in this registers, there are this list o
 offsets -- a map[variables, offset with fp]
 instructions -- the instructions of the program
 """
+from typing import Dict, List
+
 from sotv.EDG import execution_dump
+from sotv.EDG.execution_dump import DumpLine
+from sotv.Tracer.structures import Register
 
 
 class Tracer:
-    tracing_graph: dict  # {str(ref ins), { register, [str(var)]}
-    function_offsets: dict  # initialize by file
-    global_offsets: dict
+    tracing_graph: Dict[DumpLine, Dict[Register, List[str]]]  # {str(ref ins), { register, [str(var)]}
+    function_offsets: Dict[str, Dict[str, int]]  # initialize by file
+    global_offsets: Dict[str, int]
     execution_dump: execution_dump.ExecutionDump
 
     """
@@ -20,14 +24,25 @@ class Tracer:
     offsets that we received from the dump
     """
 
+    def __init__(self, local_vars, global_vars, dump):
+        self.global_offsets = global_vars
+        self.function_offsets = local_vars
+        self.execution_dump = dump
+        self.tracing_graph = {}
+
     def start_trace(self):
-        for ref in self.execution_dump.dump:
-            temp_ins = self.execution_dump.instructions.get(ref.ref_next_instruction)
-            if temp_ins.opcode.str == 'lw':
-                for ofs in self.function_offsets:
-                    if ofs in self.function_offsets:
-                        self.tracing_graph[ref.ref_next_instruction] = {temp_ins.modified_register, ofs.variables}  # this assignment is a place holder because is probably wrong
-                        self.check_after(temp_ins.modified_register, ofs.variables, temp_ins)
+        for dump_line in self.execution_dump.dump:
+            temp_ins = dump_line.next_instruction
+            if temp_ins.opcode == 'lw':
+                for variable in self.function_offsets[temp_ins.function_name].keys():
+                    if self.function_offsets[temp_ins.function_name][variable] == temp_ins.immediate:
+                        self.tracing_graph[dump_line] = {}
+                        try:
+                            self.tracing_graph[dump_line][temp_ins.r1].append(variable)  # this assignment is a place holder because is probably wrong
+                        except KeyError:
+                            self.tracing_graph[dump_line][temp_ins.r1] = []
+                            self.tracing_graph[dump_line][temp_ins.r1].append(variable)
+                        self.check_after(temp_ins.modified_register, variable, temp_ins)
 
     def get_variable(self, instruction):
         pass
@@ -36,12 +51,11 @@ class Tracer:
         pass
 
     def check_after(self, register, variable, instruction):
-        for ref in self.execution_dump.dump:
-            temp_ins = self.execution_dump.instructions.get(ref.ref_next_instruction)
+        for dump_line in self.execution_dump.dump:
+            temp_ins = dump_line.next_instruction
             if temp_ins == instruction:
                 for reference in self.execution_dump.dump:
-                    temp_ins = self.execution_dump.instructions.get(reference.ref_next_instruction)
-                    temp_ins.ins_adapter.adapt(register, variable, reference,
-                                               self)
+                    temp_ins = reference.next_instruction
+                    temp_ins.ins_adapter.adapt(register, variable, reference, self)
                     if temp_ins == temp_ins.modified_register:
                         return

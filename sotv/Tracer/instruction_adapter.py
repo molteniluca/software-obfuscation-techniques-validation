@@ -1,14 +1,11 @@
-from abc import ABC, abstractmethod
-
-"""
+""""
 this interface handle the tracing after a specific type of instruction
 """
 
 
-class AdapterInterface(ABC):
+class AdapterInterface:
     pass
 
-    @abstractmethod
     def adapt(self, register, variable, reference, tracer):
         pass
 

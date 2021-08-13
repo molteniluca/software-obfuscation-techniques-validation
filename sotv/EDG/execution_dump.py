@@ -1,3 +1,8 @@
+from typing import List
+
+from sotv.Tracer.instruction import Instruction
+
+
 class DumpLine:
     """
     This class represents a step in a dump
@@ -13,7 +18,7 @@ class DumpLine:
     SP_offsets: dict
     FP_offsets: dict
     var_values: dict
-    next_instruction: str
+    next_instruction: Instruction
     ref_next_instruction: str
 
     def __init__(self, line):
@@ -27,11 +32,16 @@ class ExecutionDump:
     :ivar dump an array representing the execution flow
     :ivar instructions the instructions contained in this program
     """
-    instructions: dict
-    dump: list = []
+    instructions: List[Instruction]
+    dump: List[DumpLine]
 
-    def __init__(self, instructions, dump):
-        self.instructions = instructions
+    def __init__(self, instructions_dict, dump):
+        self.dump = []
+
         for line in dump:
-            cos = DumpLine(line)
-            self.dump.append(cos)
+            line_obj = DumpLine(line)
+            line_obj.next_instruction = instructions_dict[line_obj.ref_next_instruction]
+
+            self.dump.append(line_obj)
+
+        self.instructions = list(instructions_dict.values())
