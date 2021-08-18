@@ -26,7 +26,11 @@ class Instruction:
 
     def __init__(self, opcode, r1, r2, r3, immediate, ref):
         self.opcode = opcode
-        self.ins_adapter = AdapterInterface()
+        try:
+            self.ins_adapter = opcodes[opcode][2]()
+        except IndexError:
+            print(opcode)
+            self.ins_adapter = AdapterInterface()
         self.r1 = r1
         self.r2 = r2
         self.r3 = r3
@@ -38,7 +42,7 @@ class Instruction:
             self.offset = 0
 
     def modified_register(self):
-        if self.opcode[1]:
+        if opcodes[self.opcode][1]:
             return self.r1
         else:
             return None

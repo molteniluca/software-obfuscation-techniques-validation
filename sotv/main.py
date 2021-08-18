@@ -17,6 +17,13 @@ def main():
             local_vars, global_vars = offset_finder.offset_finder("a.out")
             tracer = Tracer(local_vars, global_vars, execution_dump)
             tracer.start_trace()
+
+            print("\n\n\n\n")
+            for dump_line in tracer.execution_dump.dump:
+                try:
+                    print(dump_line.next_instruction.opcode+"\t"+str(tracer.tracing_graph[dump_line]))
+                except KeyError:
+                    print(dump_line.next_instruction.opcode + "\t")
             input()
     else:
         print("Error in parameters (-h for help)")
