@@ -21,9 +21,9 @@ def main():
             print("\n\n\n\n")
             for dump_line in tracer.execution_dump.dump:
                 try:
-                    print(dump_line.next_instruction.opcode+"\t"+str(tracer.tracing_graph[dump_line]))
+                    print(dump_line.executed_instruction.opcode + "\t" + str(tracer.tracing_graph[dump_line]))
                 except KeyError:
-                    print(dump_line.next_instruction.opcode + "\t")
+                    print(dump_line.executed_instruction.opcode + "\t")
             input()
     else:
         print("Error in parameters (-h for help)")

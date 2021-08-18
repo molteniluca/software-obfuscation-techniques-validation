@@ -18,8 +18,8 @@ class DumpLine:
     SP_offsets: dict
     FP_offsets: dict
     var_values: dict
-    next_instruction: Instruction
-    ref_next_instruction: str
+    executed_instruction: Instruction
+    ref_executed_instruction: str
 
     def __init__(self, line):
         self.__dict__ = line
@@ -40,7 +40,8 @@ class ExecutionDump:
 
         for line in dump:
             line_obj = DumpLine(line)
-            line_obj.next_instruction = instructions_dict[line_obj.ref_next_instruction]
+            if line_obj.executed_instruction is not None:
+                line_obj.executed_instruction = instructions_dict[line_obj.ref_executed_instruction]
 
             self.dump.append(line_obj)
 

@@ -2,18 +2,25 @@ import gdb
 import json
 import re
 
+instr = "nop"
 
 def dump_current():
+    global instr
+
     dump_step = {"registers": {}, "SP_offsets": {}, "FP_offsets": {}, "var_values": {}}
 
     # Gets next executing instruction
-    instr = gdb.execute("x/i $pc", to_string=True)
 
     # Pretty print the next instruction pointed by the program counter
-    dump_step["next_instruction"] = instr[instr.index(">:") + 3:-1].replace("\t", " ")
+    if instr != "nop":
+        dump_step["executed_instruction"] = instr[instr.index(">:") + 3:-1].replace("\t", " ")
 
-    # Regex that searches the string between "<" and ">" (<function + offset>)
-    dump_step["ref_next_instruction"] = re.search('<(.+?)>', instr).group(1)
+        # Regex that searches the string between "<" and ">" (<function + offset>)
+        dump_step["ref_executed_instruction"] = re.search('<(.+?)>', instr).group(1)
+    else:
+        dump_step["executed_instruction"] = None
+        dump_step["ref_executed_instruction"] = None
+    instr = gdb.execute("x/i $pc", to_string=True)
 
     # Dumps all registers
     for reg in regs:
@@ -40,13 +47,14 @@ def dump_current():
 
 
 def step_until_end_and_dump():
+    global instr
     dump = []
     while True:
-        dump.append(dump_current())
-        instr = gdb.execute("x/i $pc", to_string=True)
-        # Breaks only if it is in function start and next instruction is ret
         if "<" + main_function in instr and "ret" in instr:
+            dump.append(dump_current())
             break
+        dump.append(dump_current())
+        # Breaks only if it is in function start and next instruction is ret
         gdb.execute("stepi")  # Step to the next machine instruction
 
     return dump

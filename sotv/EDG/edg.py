@@ -49,11 +49,11 @@ def parse_instructions(dump) -> Dict[str, Instruction]:
     @return: The dictionary in which the keys are the instruction ref and the values are the parsed instructions
     """
     code = ""
-    for line in dump:
-        if "ret" in line["next_instruction"]:
+    for line in dump[1:]:
+        if "ret" in line["executed_instruction"]:
             code += "jr ra" + "\n"
         else:
-            code += line["next_instruction"] + "\n"
+            code += line["executed_instruction"] + "\n"
 
     with open(tmp_folder + "instructions.asm", "w") as f:
         f.write(code)
@@ -65,13 +65,13 @@ def parse_instructions(dump) -> Dict[str, Instruction]:
     parsed = json.loads(parsed)
 
     instructions = {}
-    for i in range(len(dump)):
-        instructions[dump[i]["ref_next_instruction"]] = Instruction(parsed[i]["opcode"],
+    for i in range(len(dump[1:])):
+        instructions[dump[i+1]["ref_executed_instruction"]] = Instruction(parsed[i]["opcode"],
                                                                     parsed[i]["r1"],
                                                                     parsed[i]["r2"],
                                                                     parsed[i]["r3"],
                                                                     parsed[i]["immediate"],
-                                                                    dump[i]["ref_next_instruction"])
+                                                                    dump[i+1]["ref_executed_instruction"])
     return instructions
 
 
