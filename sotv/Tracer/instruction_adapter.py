@@ -15,10 +15,8 @@ class MoveAdapter(AdapterInterface):
 
     def adapt(self, register, variable, reference, tracer):
         instruction = reference.executed_instruction
-
         tracer.add_variable(variable, register, reference)
         tracer.add_variable(variable, instruction.r1, reference)
-        tracer.check_after(instruction.modified_register(), variable, instruction)
 
 
 class ReadOnlyAdapter(AdapterInterface):
