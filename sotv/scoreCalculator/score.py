@@ -2,14 +2,12 @@ from sotv.Tracer import tracer
 
 
 class Metrics:
-    metrics: dict
-    tracing_graph: tracer.Tracer.tracing_graph
+    metrics = {"higher_register_heat": 0, "average_register_heat": 0,
+               "variable_stay_in_a_register_after_been_used(move or sw)": False}
+    tracer: None
+
+    def __init__(self, completed_tracer):
+        self.tracer: completed_tracer
 
     def metric_score(self):
         pass
-    # first metric higher time of a variable stay in a register unmodified (num_instruction*100)/(Tot_instruction)
-    # second metric medium time of a variable stay in a register unmodified
-    # third metric a variable stay in more register for more than one instruction (true/false)
-    # fourth metric time from the first change to the last one
-    # fifth metric the obfuscate code have a hide for the important value? (Example addi 1 , addi -1)
-    # sixth metric the code store the value after has end to work with it or there is more rubbish code?

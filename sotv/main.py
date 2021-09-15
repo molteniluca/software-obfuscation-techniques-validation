@@ -2,6 +2,7 @@ from sys import argv
 import utils
 from sotv.EDG import offset_finder, edg
 from sotv.Tracer.tracer import Tracer
+from sotv.scoreCalculator.score import Metrics
 
 
 def main():
@@ -17,6 +18,8 @@ def main():
             local_vars, global_vars = offset_finder.offset_finder("a.out")
             tracer = Tracer(local_vars, global_vars, execution_dump)
             tracer.start_trace()
+            metrics = Metrics(tracer)
+            metrics.metric_score()
 
             print("\n\n\n\n")
             for dump_line in tracer.execution_dump.dump:
