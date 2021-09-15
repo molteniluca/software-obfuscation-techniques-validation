@@ -52,12 +52,9 @@ class Tracer:
             if temp_ins == instruction:
                 for reference in self.execution_dump.dump:
                     temp_ins = reference.executed_instruction
-                    temp_ins.ins_adapter.adapt(register, variable, reference, self)
+                    temp_ins.ins_adapter.adapt(register, variable, reference, self, False)
                     if register == temp_ins.modified_register():
                         return
-                    if temp_ins.opcode == "mv":
-                        self.check_before(temp_ins.r2, variable, temp_ins)
-                        self.check_after(temp_ins.r2, variable, temp_ins)
 
     def check_after(self, register, variable, instruction):
         for dump_line in self.execution_dump.dump:
@@ -65,11 +62,9 @@ class Tracer:
             if temp_ins == instruction:
                 for reference in self.execution_dump.dump:
                     temp_ins = reference.executed_instruction
-                    temp_ins.ins_adapter.adapt(register, variable, reference, self)
+                    temp_ins.ins_adapter.adapt(register, variable, reference, self, True)
                     if register == temp_ins.modified_register():
                         return
-                    if temp_ins.opcode == "mv":
-                        self.check_after(temp_ins.modified_register(), variable, temp_ins)
 
     def add_variable(self, variable, register, dump_line):
         if dump_line not in self.tracing_graph.keys():
