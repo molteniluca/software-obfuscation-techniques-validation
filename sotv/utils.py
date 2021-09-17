@@ -1,5 +1,6 @@
-import os
 from os import system
+
+obfuscator_path = "/home/pii/pii/RISCV-Obfuscator/"
 
 
 def compile_asm(input_path: str, output_path: str):
@@ -18,7 +19,7 @@ def compile_asm_nosymbols(input_path: str, output_path: str):
 
 
 def obfuscate(input_path: str, output_path: str, rep_value: int, heat_value: int):
-    system("PYTHONPATH=\"/home/pii/pii/RISCV-Obfuscator/\" /usr/bin/python3.8 /home/pii/pii/RISCV-Obfuscator/rvob/main.py "
+    system("PYTHONPATH=\"" + obfuscator_path + "\" /usr/bin/python3.8 " + obfuscator_path + "/rvob/main.py "
            + input_path + " main " + str(rep_value) + " " + str(heat_value) + " " + output_path)
 
 

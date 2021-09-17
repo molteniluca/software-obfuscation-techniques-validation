@@ -6,12 +6,11 @@ from sotv.EDG import offset_finder, edg
 from sotv.Tracer.tracer import Tracer
 from sotv.scoreCalculator.score import Metrics
 
-
 tmp_folder = "./tmp/"
 
 
 def main():
-    sys.setrecursionlimit(10**6)
+    sys.setrecursionlimit(10 ** 6)
     system("rm " + tmp_folder + "*")
 
     if len(argv) == 2 or len(argv) == 3:
@@ -21,12 +20,12 @@ def main():
         else:
             test_obf = len(argv) == 3 and argv[2]
 
-            executable_ELF = tmp_folder+"test.out"
-            obfuscated_ELF = tmp_folder+"obf.out"
-            obfuscated_asm = tmp_folder+"obf.s"
-            symbols_ELF = tmp_folder+"test.out"
-            asm = tmp_folder+"out_no_symbols.s"
-            asm_json = tmp_folder+"out_no_symbols.json"
+            executable_ELF = tmp_folder + "test.out"
+            obfuscated_ELF = tmp_folder + "obf.out"
+            obfuscated_asm = tmp_folder + "obf.s"
+            symbols_ELF = tmp_folder + "test.out"
+            asm = tmp_folder + "out_no_symbols.s"
+            asm_json = tmp_folder + "out_no_symbols.json"
             exec_params = [executable_ELF]
             obf_exec_params = [obfuscated_ELF]
 
@@ -49,7 +48,6 @@ def main():
                 obf_execution_dump = edg.edg(obf_exec_params)
                 dump_list.append(obf_execution_dump)
 
-
             print("# EXECUTE TRACE #\n")
             for execution_dump in dump_list:
                 print("#### " + str(execution_dump))
@@ -68,7 +66,7 @@ def main():
                     except KeyError:
                         print(dump_line.executed_instruction.function_name.ljust(10, " ") +
                               dump_line.executed_instruction.readable.ljust(30, " "))
-                print("\n"*3)
+                print("\n" * 3)
     else:
         print("Error in parameters (-h for help)")
         exit(1)
