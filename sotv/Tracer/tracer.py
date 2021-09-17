@@ -34,10 +34,7 @@ class Tracer:
         self.already_used = {}
 
     def start_trace(self):
-        progress = 0
         for dump_line in self.execution_dump.dump:
-            progress += 1
-            print(progress/len(self.execution_dump.dump)*100)
             temp_ins = dump_line.executed_instruction
             if temp_ins.opcode in store_opcodes or temp_ins.opcode in load_opcodes:
                 if temp_ins.r2 == 's0':

@@ -1,7 +1,7 @@
 long int fact(int n);
 
 int main() {
-    return fact(100);
+    return fact(10);
 }
 
 long int fact(int n) {

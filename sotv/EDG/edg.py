@@ -2,6 +2,7 @@ import json
 import subprocess
 from typing import Dict
 
+from sotv import utils
 from sotv.EDG.execution_dump import ExecutionDump
 from sotv.EDG.offset_finder import to_gdb_notation, offset_finder
 from sotv.Tracer.instruction import Instruction
@@ -58,7 +59,7 @@ def parse_instructions(dump) -> Dict[str, Instruction]:
     with open(tmp_folder + "instructions.asm", "w") as f:
         f.write(code)
 
-    subprocess.run(["./EDG/parser", tmp_folder + "instructions.asm", tmp_folder + "parsed_instruction.json"])
+    utils.parse(tmp_folder + "instructions.asm", tmp_folder + "parsed_instruction.json")
 
     parsed_file = open(tmp_folder + "parsed_instruction.json", "r")
     parsed = parsed_file.read()
@@ -66,13 +67,13 @@ def parse_instructions(dump) -> Dict[str, Instruction]:
 
     instructions = {}
     for i in range(len(dump[1:])):
-        instructions[dump[i+1]["ref_executed_instruction"]] = Instruction(parsed[i]["opcode"],
-                                                                    parsed[i]["r1"],
-                                                                    parsed[i]["r2"],
-                                                                    parsed[i]["r3"],
-                                                                    parsed[i]["immediate"],
-                                                                    dump[i+1]["ref_executed_instruction"],
-                                                                    dump[i+1]["executed_instruction"])
+        instructions[dump[i + 1]["ref_executed_instruction"]] = Instruction(parsed[i]["opcode"],
+                                                                            parsed[i]["r1"],
+                                                                            parsed[i]["r2"],
+                                                                            parsed[i]["r3"],
+                                                                            parsed[i]["immediate"],
+                                                                            dump[i + 1]["ref_executed_instruction"],
+                                                                            dump[i + 1]["executed_instruction"])
     return instructions
 
 

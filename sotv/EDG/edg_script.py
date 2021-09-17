@@ -4,6 +4,7 @@ import re
 
 instr = "nop"
 
+
 def dump_current():
     global instr
 
@@ -20,6 +21,7 @@ def dump_current():
     else:
         dump_step["executed_instruction"] = None
         dump_step["ref_executed_instruction"] = None
+
     instr = gdb.execute("x/i $pc", to_string=True)
 
     # Dumps all registers
@@ -53,6 +55,7 @@ def step_until_end_and_dump():
         if "<" + main_function in instr and "ret" in instr:
             dump.append(dump_current())
             break
+
         dump.append(dump_current())
         # Breaks only if it is in function start and next instruction is ret
         gdb.execute("stepi")  # Step to the next machine instruction
@@ -67,7 +70,7 @@ def save_dump(dump):
 
 def initialize_debug():
     # Imports in gdb the executable (For some reason qemu doesnt send this info trough gdbserver)
-    gdb.execute("file a.out")
+    gdb.execute("file " + exec_file)
 
     gdb.execute("target remote :1234")  # Connects to the qemu gdbserver
 
