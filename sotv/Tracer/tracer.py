@@ -10,7 +10,7 @@ from typing import Dict, Set
 
 from sotv.EDG import execution_dump
 from sotv.EDG.execution_dump import DumpLine
-from sotv.Tracer.structures import Register
+from sotv.Tracer.structures import Register, store_opcodes, load_opcodes
 
 
 class Tracer:
@@ -31,40 +31,56 @@ class Tracer:
         self.execution_dump = dump
         self.tracing_graph = {}
 
+        self.already_used = {}
+
     def start_trace(self):
+        progress = 0
         for dump_line in self.execution_dump.dump:
+            progress += 1
+            print(progress/len(self.execution_dump.dump)*100)
             temp_ins = dump_line.executed_instruction
-            if temp_ins.opcode == 'lw' or temp_ins.opcode == "sw":
-                for variable in self.function_offsets[temp_ins.function_name].keys():
-                    if self.function_offsets[temp_ins.function_name][variable] == temp_ins.immediate:
-                        self.add_variable(variable, temp_ins.r1, dump_line)
-                        if temp_ins.opcode == "lw":
-                            self.check_after(temp_ins.modified_register(), variable, temp_ins)
-                        else:
-                            self.check_before(temp_ins.r1, variable, temp_ins)
-                            self.check_after(temp_ins.r1, variable, temp_ins)
+            if temp_ins.opcode in store_opcodes or temp_ins.opcode in load_opcodes:
+                if temp_ins.r2 == 's0':
+                    # Local variables check
+                    for variable in self.function_offsets[temp_ins.function_name].keys():
+                        if self.function_offsets[temp_ins.function_name][variable] == temp_ins.immediate:
+                            if variable not in self.already_used.keys():
+                                self.already_used[variable] = -1
+                            self.already_used[variable] += 1
+                            self.add_variable(variable+"_"+str(self.already_used[variable]), temp_ins.r1, dump_line)
+                            if temp_ins.opcode in load_opcodes:
+                                self.check_after(temp_ins.modified_register(), variable+"_"+str(self.already_used[variable]), dump_line)
+                            elif temp_ins.opcode in store_opcodes:
+                                self.check_before(temp_ins.r1, variable+"_"+str(self.already_used[variable]), dump_line)
+                                self.check_after(temp_ins.r1, variable+"_"+str(self.already_used[variable]), dump_line)
+                elif temp_ins.r2 == 'gp':
+                    # Global variables check
+                    for variable in self.global_offsets.keys():
+                        if self.global_offsets[variable] == temp_ins.immediate + dump_line.registers["gp"]:
+                            if variable not in self.already_used.keys():
+                                self.already_used[variable] = -1
+                            self.already_used[variable] += 1
+                            self.add_variable(variable + "_" + str(self.already_used[variable]), temp_ins.r1, dump_line)
+                            if temp_ins.opcode in load_opcodes:
+                                self.check_after(temp_ins.modified_register(),
+                                                 variable + "_" + str(self.already_used[variable]), dump_line)
+                            elif temp_ins.opcode in store_opcodes:
+                                self.check_before(temp_ins.r1, variable + "_" + str(self.already_used[variable]),
+                                                  dump_line)
+                                self.check_after(temp_ins.r1, variable + "_" + str(self.already_used[variable]),
+                                                 dump_line)
 
-    def check_before(self, register, variable, instruction):
-        dump_lines = self.execution_dump.dump.copy()
-        dump_lines.reverse()
-        for dump_line in dump_lines:
-            temp_ins = dump_line.executed_instruction
-            if temp_ins == instruction:
-                for reference in self.execution_dump.dump:
-                    temp_ins = reference.executed_instruction
-                    temp_ins.ins_adapter.adapt(register, variable, reference, self, False)
-                    if register == temp_ins.modified_register():
-                        return
+    def check_before(self, register, variable, dump_line):
+        if self.execution_dump.dump.index(dump_line)-1 < 0:
+            return
+        line = self.execution_dump.dump[self.execution_dump.dump.index(dump_line)-1]
+        line.executed_instruction.ins_adapter.adapt(register, variable, line, self, False)
 
-    def check_after(self, register, variable, instruction):
-        for dump_line in self.execution_dump.dump:
-            temp_ins = dump_line.executed_instruction
-            if temp_ins == instruction:
-                for reference in self.execution_dump.dump:
-                    temp_ins = reference.executed_instruction
-                    temp_ins.ins_adapter.adapt(register, variable, reference, self, True)
-                    if register == temp_ins.modified_register():
-                        return
+    def check_after(self, register, variable, dump_line):
+        if self.execution_dump.dump.index(dump_line)+1 >= len(self.execution_dump.dump):
+            return
+        line = self.execution_dump.dump[self.execution_dump.dump.index(dump_line)+1]
+        line.executed_instruction.ins_adapter.adapt(register, variable, line, self, True)
 
     def add_variable(self, variable, register, dump_line):
         if dump_line not in self.tracing_graph.keys():
@@ -72,3 +88,16 @@ class Tracer:
         if register not in self.tracing_graph[dump_line].keys():
             self.tracing_graph[dump_line][register] = set()
         self.tracing_graph[dump_line][register].add(variable)
+
+    def verify(self):
+        for dump_line in self.execution_dump.dump:
+            values = {}
+            if dump_line in self.tracing_graph.keys():
+                for register in self.tracing_graph[dump_line].keys():
+                    for variable in self.tracing_graph[dump_line][register]:
+                        if variable in values.keys():
+                            if values[variable] != dump_line.registers[register]:
+                                assert False
+                        else:
+                            if register == "zero":
+                                values[variable] = 0

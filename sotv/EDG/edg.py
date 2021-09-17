@@ -71,7 +71,8 @@ def parse_instructions(dump) -> Dict[str, Instruction]:
                                                                     parsed[i]["r2"],
                                                                     parsed[i]["r3"],
                                                                     parsed[i]["immediate"],
-                                                                    dump[i+1]["ref_executed_instruction"])
+                                                                    dump[i+1]["ref_executed_instruction"],
+                                                                    dump[i+1]["executed_instruction"])
     return instructions
 
 
