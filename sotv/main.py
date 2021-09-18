@@ -18,7 +18,7 @@ def main():
             print(f"Usage: {argv[0]} C_file/ASM_file [-t test obfuscated]")
             exit(1)
         else:
-            test_obf = len(argv) == 3 and argv[2]
+            test_obf = len(argv) == 3 and argv[2] == "-t"
 
             executable_ELF = tmp_folder + "test.out"
             obfuscated_ELF = tmp_folder + "obf.out"

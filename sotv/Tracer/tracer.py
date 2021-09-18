@@ -37,35 +37,36 @@ class Tracer:
         for dump_line in self.execution_dump.dump:
             temp_ins = dump_line.executed_instruction
             if temp_ins.opcode in store_opcodes or temp_ins.opcode in load_opcodes:
-                if temp_ins.r2 == 's0':
-                    # Local variables check
-                    for variable in self.function_offsets[temp_ins.function_name].keys():
-                        if self.function_offsets[temp_ins.function_name][variable] == temp_ins.immediate:
-                            if variable not in self.already_used.keys():
-                                self.already_used[variable] = -1
-                            self.already_used[variable] += 1
-                            self.add_variable(variable+"_"+str(self.already_used[variable]), temp_ins.r1, dump_line)
-                            if temp_ins.opcode in load_opcodes:
-                                self.check_after(temp_ins.modified_register(), variable+"_"+str(self.already_used[variable]), dump_line)
-                            elif temp_ins.opcode in store_opcodes:
-                                self.check_before(temp_ins.r1, variable+"_"+str(self.already_used[variable]), dump_line)
-                                self.check_after(temp_ins.r1, variable+"_"+str(self.already_used[variable]), dump_line)
-                elif temp_ins.r2 == 'gp':
-                    # Global variables check
-                    for variable in self.global_offsets.keys():
-                        if self.global_offsets[variable] == temp_ins.immediate + dump_line.registers["gp"]:
-                            if variable not in self.already_used.keys():
-                                self.already_used[variable] = -1
-                            self.already_used[variable] += 1
-                            self.add_variable(variable + "_" + str(self.already_used[variable]), temp_ins.r1, dump_line)
-                            if temp_ins.opcode in load_opcodes:
-                                self.check_after(temp_ins.modified_register(),
-                                                 variable + "_" + str(self.already_used[variable]), dump_line)
-                            elif temp_ins.opcode in store_opcodes:
-                                self.check_before(temp_ins.r1, variable + "_" + str(self.already_used[variable]),
-                                                  dump_line)
-                                self.check_after(temp_ins.r1, variable + "_" + str(self.already_used[variable]),
-                                                 dump_line)
+                if temp_ins.r2 == "s0":
+                    address = temp_ins.immediate + dump_line.registers["fp"]
+                else:
+                    address = temp_ins.immediate + dump_line.registers[temp_ins.r2]
+                sp_offset = address - dump_line.registers["fp"]
+                name_found = False
+
+                for variable_name in self.function_offsets[temp_ins.function_name].keys():
+                    if sp_offset == self.function_offsets[temp_ins.function_name][variable_name]:
+                        name_found = True
+                        self.trace_variable(variable_name, temp_ins, dump_line)
+
+                for variable_name in self.global_offsets.keys():
+                    if address == self.global_offsets[variable_name]:
+                        name_found = True
+                        self.trace_variable(variable_name, temp_ins, dump_line)
+
+                if not name_found:
+                    self.trace_variable(hex(address), temp_ins, dump_line)
+
+    def trace_variable(self, variable, temp_ins, dump_line):
+        if variable not in self.already_used.keys():
+            self.already_used[variable] = -1
+        self.already_used[variable] += 1
+        self.add_variable(variable+"_"+str(self.already_used[variable]), temp_ins.r1, dump_line)
+        if temp_ins.opcode in load_opcodes:
+            self.check_after(temp_ins.modified_register(), variable+"_"+str(self.already_used[variable]), dump_line)
+        elif temp_ins.opcode in store_opcodes:
+            self.check_before(temp_ins.r1, variable+"_"+str(self.already_used[variable]), dump_line)
+            self.check_after(temp_ins.r1, variable+"_"+str(self.already_used[variable]), dump_line)
 
     def check_before(self, register, variable, dump_line):
         if self.execution_dump.dump.index(dump_line)-1 < 0:
