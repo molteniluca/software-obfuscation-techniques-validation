@@ -19,9 +19,11 @@ class MoveAdapter(AdapterInterface):
             if is_check_after:
                 return
             else:
-                tracer.check_before(register, variable, reference)
+                tracer.check_before(instruction.r2, variable, reference)
+                tracer.check_after(instruction.r2, variable, reference)
 
                 tracer.add_variable(variable, register, reference)
+                tracer.add_variable(variable, instruction.r2, reference)
         else:
             if is_check_after:
                 tracer.add_variable(variable, register, reference)
@@ -39,9 +41,12 @@ class ReadOnlyAdapter(AdapterInterface):
     pass
 
     def adapt(self, register, variable, reference, tracer, is_check_after):
+        tracer.add_variable(variable, register, reference)
         if is_check_after:
-            tracer.add_variable(variable, register, reference)
             tracer.check_after(register, variable, reference)
+        else:
+            tracer.check_before(register, variable, reference)
+
 
 
 class WriteAdapter(AdapterInterface):
@@ -55,7 +60,6 @@ class WriteAdapter(AdapterInterface):
             if is_check_after:
                 tracer.check_after(register, variable, reference)
             else:
-                tracer.check_after(register, variable, reference)
                 tracer.check_before(register, variable, reference)
         else:
             if not is_check_after:

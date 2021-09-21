@@ -33,10 +33,12 @@ class Tracer:
 
         self.already_used = {}
 
-    def start_trace(self):
+    def start_trace(self, trace_no_symbols=True):
         for dump_line in self.execution_dump.dump:
             temp_ins = dump_line.executed_instruction
             if temp_ins.opcode in store_opcodes or temp_ins.opcode in load_opcodes:
+                if temp_ins.r1 == "ra" or  temp_ins.r1 == "s0":
+                    continue
                 if temp_ins.r2 == "s0":
                     address = temp_ins.immediate + dump_line.registers["fp"]
                 else:
@@ -44,17 +46,16 @@ class Tracer:
                 sp_offset = address - dump_line.registers["fp"]
                 name_found = False
 
-                for variable_name in self.function_offsets[temp_ins.function_name].keys():
-                    if sp_offset == self.function_offsets[temp_ins.function_name][variable_name]:
-                        name_found = True
-                        self.trace_variable(variable_name, temp_ins, dump_line)
-
+                if temp_ins.function_name in self.function_offsets.keys():
+                    for variable_name in self.function_offsets[temp_ins.function_name].keys():
+                        if sp_offset == self.function_offsets[temp_ins.function_name][variable_name]:
+                            name_found = True
+                            self.trace_variable(variable_name, temp_ins, dump_line)
                 for variable_name in self.global_offsets.keys():
                     if address == self.global_offsets[variable_name]:
                         name_found = True
                         self.trace_variable(variable_name, temp_ins, dump_line)
-
-                if not name_found:
+                if not name_found and trace_no_symbols:
                     self.trace_variable(hex(address), temp_ins, dump_line)
 
     def trace_variable(self, variable, temp_ins, dump_line):
@@ -88,14 +89,32 @@ class Tracer:
         self.tracing_graph[dump_line][register].add(variable)
 
     def verify(self):
+        values = {}
         for dump_line in self.execution_dump.dump:
-            values = {}
             if dump_line in self.tracing_graph.keys():
                 for register in self.tracing_graph[dump_line].keys():
                     for variable in self.tracing_graph[dump_line][register]:
+                        if register == "s0":
+                            register = "fp"
                         if variable in values.keys():
-                            if values[variable] != dump_line.registers[register]:
-                                assert False
+                            if register == "zero":
+                                if values[variable] != 0:
+                                    assert False
+                            else:
+                                if values[variable] != dump_line.registers[register]:
+                                    assert False
                         else:
                             if register == "zero":
                                 values[variable] = 0
+                            else:
+                                values[variable] = dump_line.registers[register]
+
+    def print(self):
+        for dump_line in self.execution_dump.dump:
+            try:
+                print(dump_line.executed_instruction.function_name.ljust(10, " ") +
+                      dump_line.executed_instruction.readable.ljust(30, " ") + "\t" +
+                      str(self.tracing_graph[dump_line]))
+            except KeyError:
+                print(dump_line.executed_instruction.function_name.ljust(10, " ") +
+                      dump_line.executed_instruction.readable.ljust(30, " "))

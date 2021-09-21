@@ -20,26 +20,26 @@ def main():
         else:
             test_obf = len(argv) == 3 and argv[2] == "-t"
 
-            executable_ELF = tmp_folder + "test.out"
-            obfuscated_ELF = tmp_folder + "obf.out"
+            executable_elf = tmp_folder + "test.out"
+            obfuscated_elf = tmp_folder + "obf.out"
             obfuscated_asm = tmp_folder + "obf.s"
-            symbols_ELF = tmp_folder + "test.out"
+            symbols_elf = tmp_folder + "test.out"
             asm = tmp_folder + "out_no_symbols.s"
             asm_json = tmp_folder + "out_no_symbols.json"
-            exec_params = [executable_ELF]
-            obf_exec_params = [obfuscated_ELF]
+            exec_params = [executable_elf]
+            obf_exec_params = [obfuscated_elf]
 
             print("# STARTING COMPILING STAGE #\n")
-            utils.compile_exec(argv[1], executable_ELF)
+            utils.compile_exec(argv[1], executable_elf)
             utils.compile_asm_nosymbols(argv[1], asm)
 
             if test_obf:
                 utils.parse(asm, asm_json)
                 utils.obfuscate(asm_json, obfuscated_asm, 1, 1)
-                utils.compile_exec(obfuscated_asm, obfuscated_ELF)
+                utils.compile_exec(obfuscated_asm, obfuscated_elf)
 
             print("# RUNNING DUMP #\n")
-            local_vars, global_vars = offset_finder.offset_finder(symbols_ELF)
+            local_vars, global_vars = offset_finder.offset_finder(symbols_elf)
             dump_list = []
             plain_execution_dump = edg.edg(exec_params)
             dump_list.append(plain_execution_dump)
@@ -52,20 +52,13 @@ def main():
             for execution_dump in dump_list:
                 print("#### " + str(execution_dump))
                 tracer = Tracer(local_vars, global_vars, execution_dump)
-                tracer.start_trace()
+                tracer.start_trace(trace_no_symbols=True)
                 tracer.verify()
 
                 metrics = Metrics(tracer)
                 metrics.metric_score()
 
-                for dump_line in tracer.execution_dump.dump:
-                    try:
-                        print(dump_line.executed_instruction.function_name.ljust(10, " ") +
-                              dump_line.executed_instruction.readable.ljust(30, " ") + "\t" +
-                              str(tracer.tracing_graph[dump_line]))
-                    except KeyError:
-                        print(dump_line.executed_instruction.function_name.ljust(10, " ") +
-                              dump_line.executed_instruction.readable.ljust(30, " "))
+                tracer.print()
                 print("\n" * 3)
     else:
         print("Error in parameters (-h for help)")
