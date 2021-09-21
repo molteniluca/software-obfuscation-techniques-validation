@@ -25,7 +25,7 @@ class Instruction:
     ins_adapter: AdapterInterface
     readable: str
 
-    def __init__(self, opcode, r1, r2, r3, immediate, ref, readable):
+    def __init__(self, opcode: str, r1: str, r2: str, r3: str, immediate: int, ref: str, readable: str):
         self.opcode = opcode
         try:
             self.ins_adapter = opcodes[opcode][2]()
