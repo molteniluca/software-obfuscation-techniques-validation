@@ -46,7 +46,7 @@ class Instruction:
             self.offset = 0
 
     def modified_register(self):
-        if opcodes[self.opcode][1]:
+        if opcodes[self.opcode][1] and self.r1 != "unused":
             return self.r1
         else:
             return None
