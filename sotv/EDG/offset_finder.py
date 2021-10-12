@@ -42,7 +42,8 @@ def offset_finder(filename: str) -> Tuple[Dict[str, dict], Dict[str, int]]:
                 for DIE in CU.get_top_DIE().iter_children():
                     if DIE.tag == "DW_TAG_variable":
                         decoded = decode_variable(CU, dwarf, DIE, location_parser)
-                        global_vars[decoded[0]] = decoded[1]
+                        if decoded is not None:
+                            global_vars[decoded[0]] = decoded[1]
                     else:
                         for variable in DIE.iter_children():
                             decoded = decode_variable(CU, dwarf, variable, location_parser)

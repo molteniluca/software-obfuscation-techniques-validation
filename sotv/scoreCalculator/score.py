@@ -58,7 +58,6 @@ class Metrics:
                         else:
                             self.metrics_trash[reg] = 1
                     self.trash_detector(instruction.executed_instruction.modified_register(), registers_status)
-        self.print()
 
     def trash_detector(self, register, registers_status):
         if register is not None:

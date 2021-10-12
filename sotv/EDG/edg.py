@@ -3,6 +3,7 @@ import subprocess
 from typing import Dict
 
 from sotv import utils
+from sotv.EDG.exceptions.DumpFailedException import DumpFailedException
 from sotv.EDG.execution_dump import ExecutionDump
 from sotv.EDG.offset_finder import to_gdb_notation, offset_finder
 from sotv.Tracer.instruction import Instruction
@@ -36,7 +37,10 @@ def edg(executable_params: list) -> ExecutionDump:
     subprocess.Popen(["qemu-riscv64-static", "-g", "1234"] + executable_params)
     subprocess.run(["gdb-multiarch", "-command=./EDG/edg_script.py", "-batch-silent"])
 
-    dump = json.loads(open(tmp_folder + dump_file, "r").read())
+    try:
+        dump = json.loads(open(tmp_folder + dump_file, "r").read())
+    except FileNotFoundError as e:
+        raise DumpFailedException
 
     instructions = parse_instructions(dump)
 
