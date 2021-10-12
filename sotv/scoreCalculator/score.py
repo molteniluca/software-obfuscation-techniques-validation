@@ -1,6 +1,6 @@
 from sotv.Tracer import tracer
 from typing import Dict
-from sotv.Tracer.structures import Register
+from sotv.Tracer.structures import Register, not_trash_registers
 
 
 # Updates the dictionary of the variable at his last edit
@@ -38,7 +38,7 @@ class Metrics:
         self.metrics_trash = {}
 
     def metric_score(self):
-        lock_dict = []
+        lock_list = []
         for instruction in self.tracer.execution_dump.dump:
             try:
                 registers_status = self.tracer.tracing_graph[instruction]
@@ -46,8 +46,8 @@ class Metrics:
                 registers_status = None
             if registers_status is not None:
                 for reg in registers_status.keys():
-                    lock(lock_dict, registers_status)
-                    if verify(lock_dict, registers_status[reg]):
+                    lock(lock_list, registers_status)
+                    if verify(lock_list, registers_status[reg]):
                         if reg in self.metrics_heat.keys():
                             self.metrics_heat[reg] += 1
                         else:
@@ -57,16 +57,16 @@ class Metrics:
                             self.metrics_trash[reg] += 1
                         else:
                             self.metrics_trash[reg] = 1
-                    temp_reg = instruction.executed_instruction.modified_register()
-                    # case that the instruction modified a register that is not in the tracer
-                    if temp_reg is not None:
-                        if temp_reg not in registers_status.keys():
-                            if temp_reg in self.metrics_trash.keys():
-                                self.metrics_trash[temp_reg] += 1
-                            else:
-                                self.metrics_trash[temp_reg] = 1
+                    self.trash_detector(instruction.executed_instruction.modified_register(), registers_status)
         self.print()
-        print(lock_dict)
+
+    def trash_detector(self, register, registers_status):
+        if register is not None:
+            if register not in registers_status.keys() and register not in not_trash_registers:
+                if register in self.metrics_trash.keys():
+                    self.metrics_trash[register] += 1
+                else:
+                    self.metrics_trash[register] = 1
 
     def print(self):
         print(self.metrics_heat)

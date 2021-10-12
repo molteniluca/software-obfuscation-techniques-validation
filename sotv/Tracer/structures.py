@@ -98,6 +98,8 @@ registers = ["ra", "sp", "gp", "tp", "t0", "t1", "t2", "t3", "t4", "t5", "t6", "
              "s5", "s6", "s7", "s8", "s9", "s10", "s11", "a0", "a1", "a2", "a3", "a4", "a5", "a6", "a7",
              "zero", "reg_err", "unused"]
 
+not_trash_registers = ["ra", "sp", "gp", "tp", "zero"]
+
 # Dictionary of immediate formats with associated immediate field size
 imm_sizes: Mapping[str, int] = {
     "i": 12,
