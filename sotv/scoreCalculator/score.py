@@ -30,12 +30,14 @@ def verify(variables, register):
 class Metrics:
     metrics_heat: Dict[Register, int]
     metrics_trash: Dict[Register, int]
+    old_variables: Dict[Register, int]
     tracer: tracer.Tracer
 
     def __init__(self, completed_tracer):
         self.tracer = completed_tracer
         self.metrics_heat = {}
         self.metrics_trash = {}
+        self.old_variables = {}
 
     def metric_score(self):
         lock_list = []
@@ -53,10 +55,10 @@ class Metrics:
                         else:
                             self.metrics_heat[reg] = 1
                     else:
-                        if reg in self.metrics_trash.keys():
-                            self.metrics_trash[reg] += 1
+                        if reg in self.old_variables.keys():
+                            self.old_variables[reg] += 1
                         else:
-                            self.metrics_trash[reg] = 1
+                            self.old_variables[reg] = 1
                     self.trash_detector(instruction.executed_instruction.modified_register(), registers_status)
         self.print()
 
@@ -69,5 +71,9 @@ class Metrics:
                     self.metrics_trash[register] = 1
 
     def print(self):
+        print("old_variables")
+        print(self.old_variables)
+        print("metrics_heat")
         print(self.metrics_heat)
+        print("trash_added")
         print(self.metrics_trash)
