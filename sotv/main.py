@@ -19,7 +19,7 @@ def main():
         else:
             test_obf = len(argv) == 3 and argv[2] == "-t"
             if test_obf:
-                result = execute_obfuscated(argv[1], ("main", 5, 5))
+                result = execute_obfuscated(argv[1], ("main", 3, 3))
             else:
                 result = execute_plain(argv[1])
 

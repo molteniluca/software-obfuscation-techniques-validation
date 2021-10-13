@@ -1,4 +1,5 @@
 import json
+import os
 import subprocess
 from typing import Dict
 
@@ -84,4 +85,4 @@ def parse_instructions(dump) -> Dict[str, Instruction]:
 if __name__ == "__main__":
     # Starts qemu session in background
     subprocess.Popen(["qemu-riscv64-static", "-g", "1234", "./a.out"])
-    subprocess.run(["gdb-multiarch", "-command=edg_script.py", "-batch-silent"])
+    os.system(["gdb-multiarch", "-command=edg_script.py"])
