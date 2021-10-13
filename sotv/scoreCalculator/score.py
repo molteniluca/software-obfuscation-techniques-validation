@@ -59,11 +59,11 @@ class Metrics:
                             self.old_variables[reg] += 1
                         else:
                             self.old_variables[reg] = 1
-                    self.trash_detector(instruction.executed_instruction.modified_register(), registers_status)
+                        self.trash_detector(instruction.executed_instruction.modified_register())
 
-    def trash_detector(self, register, registers_status):
+    def trash_detector(self, register):
         if register is not None:
-            if register not in registers_status.keys() and register not in not_trash_registers:
+            if register not in not_trash_registers:
                 if register in self.metrics_trash.keys():
                     self.metrics_trash[register] += 1
                 else:
