@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
 #include <limits.h>
 
 typedef struct temp1{
@@ -26,13 +25,11 @@ typedef struct Point{
 }node;
 
 node *ArrayBuffer;
-heap_node *reset;
 heap *minHeap;
-int rankLength = 0;
 
 int Parent(int i){
     return (i - 1) / 2;
-};
+}
 
 int Left(int i){
     return i*2 +1;
@@ -66,7 +63,7 @@ void minHeapify(int i){
 }
 
 void Create_Min_Heap(int nodeListLength){
-    minHeap = malloc(sizeof (heap*));
+    minHeap = malloc(sizeof (heap));
     minHeap->nodeList = malloc(nodeListLength * sizeof(heap_node*));
     minHeap->size = 0;
     minHeap->position = malloc(nodeListLength * sizeof(int));
@@ -75,9 +72,6 @@ void Create_Min_Heap(int nodeListLength){
 void Insert(int index,int i,int distance){
     if(index==0){
         minHeap->nodeList[i] = malloc(sizeof (heap_node));
-        if(i==0){
-            reset = minHeap->nodeList[i];
-        }
     }
     minHeap->nodeList[i]->vertex = i;
     minHeap->nodeList[i]->distance = distance;
@@ -109,7 +103,6 @@ heap_node *extractMin(){
 
 void ResetHeap(int index, int *distance){
     minHeap->size = 0;
-    heap_node *flag = reset;
     for(int i = 0; i < ArrayBuffer->size; i++){
         distance[i] = INT_MAX;
         Insert(index,i,distance[i]);
@@ -127,9 +120,6 @@ void DijkstraQueue(){
     while(minHeap->size != 0){
         heapNode = extractMin();
         temp = heapNode->vertex;
-        if(temp == 0){
-            reset = heapNode;
-        }
         proximity_list *list = ArrayBuffer->list[temp];
         int vTemp;
         while(list != NULL){
@@ -141,17 +131,16 @@ void DijkstraQueue(){
             list = list->next;
         }
     }
-};
+}
 
 void Insert_List(int vertex) {
     proximity_list *head = NULL;
-    proximity_list *prev, *next= ArrayBuffer->list[vertex], *temp;
-    proximity_list *temp1;
+    proximity_list *prev, *temp;
     prev = NULL;
     int length;
     int number = 0;
     for (int i=0; i<40; i++) {
-        length = rand();
+        length = rand() % 120;
         if (length != 0 && vertex != number && number != 0) {
             temp = malloc(sizeof(proximity_list));
             if (prev == NULL) {
@@ -169,10 +158,11 @@ void Insert_List(int vertex) {
 }
 
 void main() {
-    ArrayBuffer = malloc(sizeof(node*));
-    int sizeLine;
+    ArrayBuffer = malloc(sizeof(node));
     int k;
     k = 40;
+    ArrayBuffer->size = k;
+    ArrayBuffer->list = malloc(k * sizeof(proximity_list**));
     Create_Min_Heap(k);
     for (int i = 0; i<k; i++){
         Insert_List(i);
