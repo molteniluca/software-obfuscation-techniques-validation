@@ -7,6 +7,7 @@ from sotv.EDG.exceptions.DumpFailedException import DumpFailedException
 from sotv.Tracer.tracer import Tracer
 from sotv.exceptions.SubProcessFailedException import SubProcessFailedException
 from sotv.scoreCalculator.score import Metrics
+import time
 
 tmp_folder = "./tmp/"
 
@@ -31,7 +32,7 @@ def main():
 
 
 def execute_obfuscated(source_file: str, obfuscator_params: (str, int, int)):
-    sys.setrecursionlimit(10 ** 6)
+    sys.setrecursionlimit(10 ** 4)
     system("rm " + tmp_folder + "*")
 
     obfuscated_elf = tmp_folder + "obf.out"
@@ -84,8 +85,8 @@ def execute_obfuscated(source_file: str, obfuscator_params: (str, int, int)):
 
 
 def execute_plain(source_file: str):
-    sys.setrecursionlimit(10 ** 6)
-    system("rm " + tmp_folder + "*")
+    sys.setrecursionlimit(10 ** 4)
+    #system("rm " + tmp_folder + "*")
 
     executable_elf = tmp_folder + "test.out"
     symbols_elf = tmp_folder + "test.out"
@@ -98,18 +99,20 @@ def execute_plain(source_file: str):
             utils.obfuscate(argv[1], asm, "main", 0, 0)
             utils.compile_exec(asm, executable_elf)
         else:
-            utils.compile_exec(argv[1], executable_elf)
+            #utils.compile_exec(argv[1], executable_elf)
             utils.compile_asm_nosymbols(argv[1], asm)
     except SubProcessFailedException as e:
         print("Compilation failed")
         exit(-1)
 
     print("# RUNNING DUMP #\n")
+    start_time = time.time()
     local_vars, global_vars = offset_finder.offset_finder(symbols_elf)
     plain_execution_dump = edg.edg(exec_params)
 
+    print("--- %s seconds ---" % (time.time() - start_time))
     print("# EXECUTE TRACE #\n")
-
+    start_time = time.time()
     print("#### " + str(plain_execution_dump))
     tracer = Tracer(local_vars, global_vars, plain_execution_dump)
     tracer.start_trace(trace_no_symbols=True)
@@ -117,6 +120,7 @@ def execute_plain(source_file: str):
     metrics = Metrics(tracer)
     metrics.metric_score()
 
+    print("--- %s seconds ---" % (time.time() - start_time))
     return tracer, metrics
 
 

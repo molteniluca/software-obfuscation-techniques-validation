@@ -1,24 +1,25 @@
 import gdb
 import json
 import os
-import re
 
 old_instr = "nop"
+old_instr_name = "nop"
+old_instr_pc = 0
 
 
 def dump_current():
     global old_instr
+    global old_instr_pc
+    global old_instr_name
 
     dump_step = {"registers": {}, "SP_offsets": {}, "FP_offsets": {}, "var_values": {}}
 
     # Gets next executing instruction
 
     # Pretty print the next instruction pointed by the program counter
-    if old_instr != "nop":
-        dump_step["executed_instruction"] = old_instr[old_instr.index(">:") + 3:-1].replace("\t", " ")
-
-        # Regex that searches the string between "<" and ">" (<function + offset>)
-        dump_step["ref_executed_instruction"] = re.search('<(.+?)>', old_instr).group(1)
+    if old_instr_pc != 0:
+        dump_step["executed_instruction"] = old_instr
+        dump_step["ref_executed_instruction"] = old_instr_name + "+" + str(old_instr_pc)
     else:
         dump_step["executed_instruction"] = None
         dump_step["ref_executed_instruction"] = None
@@ -27,45 +28,35 @@ def dump_current():
     for reg in regs:
         dump_step["registers"][reg] = int(gdb.parse_and_eval("$" + reg))
 
-    for var in c_variables:
-        try:
-            # Computes the offset between the variable address and SP
-            dump_step["SP_offsets"][var] = -int(gdb.parse_and_eval("$sp - (void *)&" + var))
-        except gdb.error:
-            pass
-        try:
-            # Computes the offset between the variable address and FP
-            dump_step["FP_offsets"][var] = -int(gdb.parse_and_eval("$fp - (void *)&" + var))
-        except gdb.error:
-            pass
-        try:
-            # Gets the variable value
-            dump_step["var_values"][var] = int(gdb.parse_and_eval(var))
-        except gdb.error:
-            pass
-
     return dump_step
 
 
 def step_until_end_and_dump():
     global old_instr
+    global old_instr_name
+    global old_instr_pc
+    end_dump = False
     dump = []
     while True:
-        if "<" + main_function in old_instr and "ret" in old_instr:
-            dump.append(dump_current())
+        if end_dump:
             break
-
-
         try:
-            if " at " not in gdb.execute("backtrace 1", to_string=True):
-                gdb.execute("stepi")
-                continue
+            while "None" in str(gdb.find_pc_line(old_instr_pc).symtab) and old_instr_pc != 0:
+                frame = gdb.selected_frame()
+                old_instr_name = frame.name()
+                old_instr_pc = frame.pc()
+                old_instr = frame.architecture().disassemble(old_instr_pc, old_instr_pc)[0]["asm"]
+                gdb.execute("ni")
         except gdb.error as e:
             pass
-
         dump.append(dump_current())
-        old_instr = gdb.execute("x/i $pc", to_string=True)
+        frame = gdb.selected_frame()
+        old_instr_name = frame.name()
+        old_instr_pc = frame.pc()
+        old_instr = frame.architecture().disassemble(old_instr_pc, old_instr_pc)[0]["asm"]
         # Breaks only if it is in function start and next instruction is ret
+        if "ret" in old_instr and old_instr_name == "main":
+            end_dump = True
         gdb.execute("stepi")  # Step to the next machine instruction
     return dump
 
@@ -100,10 +91,10 @@ if __name__ == "__main__":
     exec_file = config["exec_file"]
 
     initialize_debug()
-    try:
-        save_dump(step_until_end_and_dump())
-    except Exception as e:
-        os.system("rm " + dump_output)
-        print("Failed debug")
+    #try:
+    save_dump(step_until_end_and_dump())
+    #except Exception as e:
+    #    os.system("rm " + dump_output)
+    #    print("Failed debug")
 
     gdb.execute("quit")  # Exits gdb

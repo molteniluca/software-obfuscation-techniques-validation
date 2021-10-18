@@ -6,11 +6,14 @@ node --  a map[at this instruction, map[in this registers, there are this list o
 offsets -- a map[variables, offset with fp]
 instructions -- the instructions of the program
 """
+import threading
+from concurrent.futures import ProcessPoolExecutor
 from typing import Dict, Set
 
 from sotv.EDG import execution_dump
 from sotv.EDG.execution_dump import DumpLine
 from sotv.Tracer.structures import Register, store_opcodes, load_opcodes
+from concurrent.futures import ThreadPoolExecutor
 
 
 class Tracer:
@@ -18,6 +21,8 @@ class Tracer:
     function_offsets: Dict[str, Dict[str, int]]  # initialize by file
     global_offsets: Dict[str, int]
     execution_dump: execution_dump.ExecutionDump
+    lock = threading.Lock()
+    done = 0
 
     def __init__(self, local_vars, global_vars, dump):
         self.global_offsets = global_vars
@@ -33,9 +38,12 @@ class Tracer:
         """
         Creates the variable trace over the instructions and registers
         """
-
+        i = 0
+        # with ProcessPoolExecutor(max_workers=12) as executor:
         # Loop trough dump lines
         for dump_line in self.execution_dump.dump:
+            print("Progress: " + str(i) + "/" + str(len(self.execution_dump.dump)))
+            i += 1
             temp_ins = dump_line.executed_instruction
 
             # Check whether the instruction is relevant by checking if is a load type or a store type
@@ -67,10 +75,16 @@ class Tracer:
                     if address == self.global_offsets[variable_name]:
                         name_found = True
                         self.trace_variable(variable_name, temp_ins, dump_line)
-
                 # Default name is hex(address) in case of missing symbol, do not trace in case trace_no_symbols == False
                 if not name_found and trace_no_symbols:
                     self.trace_variable(hex(address), temp_ins, dump_line)
+
+
+    def execute_trace(self, task):
+        print(task[1].readable)
+        self.trace_variable(*task)
+        self.done += 1
+        print(str(self.done) + "/" + str(len(self.execution_dump.dump)))
 
     def trace_variable(self, variable, temp_ins, dump_line):
         """
@@ -102,15 +116,20 @@ class Tracer:
         @param variable: The variable name
         @param dump_line: The dump line reference
         """
-        # Checks if the trace has gotten to the dump limit
-        if self.execution_dump.dump.index(dump_line)-1 < 0:
-            return
 
-        # Gets the previous dump line
-        line = self.execution_dump.dump[self.execution_dump.dump.index(dump_line)-1]
+        continue_tracing = True
+        i = 1
+        while continue_tracing:
+            # Checks if the trace has gotten to the dump limit
+            if self.execution_dump.dump.index(dump_line)-i < 0:
+                return
 
-        # Executes the adapter
-        line.executed_instruction.ins_adapter.adapt(register, variable, line, self, False)
+            # Gets the previous dump line
+            line = self.execution_dump.dump[self.execution_dump.dump.index(dump_line)-i]
+
+            # Executes the adapter
+            continue_tracing = line.executed_instruction.ins_adapter.adapt(register, variable, line, self, False)
+            i += 1
 
     def check_after(self, register, variable, dump_line):
         """
@@ -119,15 +138,20 @@ class Tracer:
         @param variable: The variable name
         @param dump_line: The dump line reference
         """
-        # Checks if the trace has gotten to the dump limit
-        if self.execution_dump.dump.index(dump_line)+1 >= len(self.execution_dump.dump):
-            return
 
-        # Gets the next dump line
-        line = self.execution_dump.dump[self.execution_dump.dump.index(dump_line)+1]
+        continue_tracing = True
+        i = 1
+        while continue_tracing:
+            # Checks if the trace has gotten to the dump limit
+            if self.execution_dump.dump.index(dump_line)+i >= len(self.execution_dump.dump):
+                return
 
-        # Executes the adapter
-        line.executed_instruction.ins_adapter.adapt(register, variable, line, self, True)
+            # Gets the next dump line
+            line = self.execution_dump.dump[self.execution_dump.dump.index(dump_line)+i]
+
+            # Executes the adapter
+            continue_tracing = line.executed_instruction.ins_adapter.adapt(register, variable, line, self, True)
+            i += 1
 
     def add_variable(self, variable, register, dump_line):
         """
@@ -136,11 +160,13 @@ class Tracer:
         @param register: The associated register
         @param dump_line: The dump_line reference
         """
+        #self.lock.acquire()
         if dump_line not in self.tracing_graph.keys():
             self.tracing_graph[dump_line] = {}
         if register not in self.tracing_graph[dump_line].keys():
             self.tracing_graph[dump_line][register] = set()
         self.tracing_graph[dump_line][register].add(variable)
+        #self.lock.release()
 
     def verify(self):
         """
