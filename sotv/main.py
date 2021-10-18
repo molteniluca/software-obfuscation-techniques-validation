@@ -86,7 +86,7 @@ def execute_obfuscated(source_file: str, obfuscator_params: (str, int, int)):
 
 def execute_plain(source_file: str):
     sys.setrecursionlimit(10 ** 4)
-    #system("rm " + tmp_folder + "*")
+    system("rm " + tmp_folder + "*")
 
     executable_elf = tmp_folder + "test.out"
     symbols_elf = tmp_folder + "test.out"
@@ -99,7 +99,7 @@ def execute_plain(source_file: str):
             utils.obfuscate(argv[1], asm, "main", 0, 0)
             utils.compile_exec(asm, executable_elf)
         else:
-            #utils.compile_exec(argv[1], executable_elf)
+            utils.compile_exec(argv[1], executable_elf)
             utils.compile_asm_nosymbols(argv[1], asm)
     except SubProcessFailedException as e:
         print("Compilation failed")
