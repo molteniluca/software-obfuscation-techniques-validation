@@ -22,7 +22,7 @@ class MoveAdapter(AdapterInterface):
     pass
 
     def adapt(self, register: str, variable: str, reference, tracer, is_check_after: bool) -> bool:
-        instruction = reference.executed_instruction
+        instruction = tracer.execution_dump.dump[reference].executed_instruction
         if instruction.modified_register() == register:
             if is_check_after:
                 return False
@@ -64,7 +64,7 @@ class WriteAdapter(AdapterInterface):
     pass
 
     def adapt(self, register: str, variable: str, reference, tracer, is_check_after: bool):
-        instruction = reference.executed_instruction
+        instruction = tracer.execution_dump.dump[reference].executed_instruction
         if instruction.modified_register() != register:
             tracer.add_variable(variable, register, reference)
 
