@@ -14,9 +14,10 @@ dump_folder = "./EDG/dumps/"
 config_file = "EDG_conf.json"
 
 
-def edg(name: str, executable_params: list) -> ExecutionDump:
+def edg(name: str, executable_params: list, ignore_cache: bool = False) -> ExecutionDump:
     """
     This functions performs an execution and dumps data
+    @param ignore_cache: Ignore already executed dump in dumps folder
     @param name: name of the executed program
     @param executable_params: Argv, a list containing the executable name and parameters
     @return: An execution dump and a parsed instruction dictionary
@@ -36,7 +37,7 @@ def edg(name: str, executable_params: list) -> ExecutionDump:
     if not os.path.exists(dump_folder):
         os.makedirs(dump_folder)
 
-    if not os.path.isfile(dump_file):
+    if not os.path.isfile(dump_file) and ignore_cache:
         with open(tmp_folder + config_file, "w") as f:
             f.write(json.dumps(config))
         # Starts qemu session in background
