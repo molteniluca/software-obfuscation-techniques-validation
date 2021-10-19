@@ -15,7 +15,7 @@ tmp_folder = "./tmp/"
 
 
 def main():
-    obf_params = ("main", 3, 3)
+    obf_params = ("main", 1, 1)
 
     if len(argv) == 2 or len(argv) == 3:
         if argv[1] == "-h":
