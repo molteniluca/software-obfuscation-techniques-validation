@@ -31,12 +31,12 @@ def edg(executable_params: list) -> ExecutionDump:
         "exec_file": executable_params[0]
     }
 
-    with open(tmp_folder + config_file, "w") as f:
-        f.write(json.dumps(config))
+    #with open(tmp_folder + config_file, "w") as f:
+    #    f.write(json.dumps(config))
 
     # Starts qemu session in background
-    subprocess.Popen(["qemu-riscv64-static", "-g", "1234"] + executable_params)
-    subprocess.run(["gdb-multiarch", "-command=./EDG/edg_script.py", "-batch-silent"])
+    #subprocess.Popen(["qemu-riscv64-static", "-g", "1234"] + executable_params)
+    #subprocess.run(["gdb-multiarch", "-command=./EDG/edg_script.py", "-batch-silent"])
 
     try:
         dump = json.loads(open(tmp_folder + dump_file, "r").read())

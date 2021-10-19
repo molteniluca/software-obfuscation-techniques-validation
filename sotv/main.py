@@ -24,7 +24,7 @@ def main():
             else:
                 result = execute_plain(argv[1])
 
-            result[0].print()
+            # result[0].print()
             result[1].print()
     else:
         print("Error in parameters (-h for help)")
@@ -116,7 +116,6 @@ def execute_plain(source_file: str):
     print("#### " + str(plain_execution_dump))
     tracer = Tracer(local_vars, global_vars, plain_execution_dump)
     tracer.start_trace(trace_no_symbols=True)
-
     metrics = Metrics(tracer)
     metrics.metric_score()
 
