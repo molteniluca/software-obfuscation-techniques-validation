@@ -8,69 +8,69 @@ typedef unsigned int       word32;  // 32-bit word is an int
 
 //----- Defines ---------------------------------------------------------------
 #define POLYNOMIAL 0x04c11db7L      // Standard CRC-32 ppolynomial
-#define BUFFER_LEN       4096L      // Length of buffer
+#define BUFFERLEN       4096L      // Length of buffer
 
 //----- Gloabl variables ------------------------------------------------------
-static word32 crc_table[256];       // Table of 8-bit remainders
+static word32 crctable[256];       // Table of 8-bit remainders
 
 //----- Prototypes ------------------------------------------------------------
-void gen_crc_table(void);
-word32 update_crc(word32 crc_accum, byte *data_blk_ptr, word32 data_blk_size);
+void gencrctable(void);
+word32 updatecrc(word32 crcaccum, byte *datablkptr, word32 datablksize);
 
 //===== Main program ==========================================================
 void main(void)
 {
-  byte        buff[BUFFER_LEN]; // Buffer of packet bytes
+  byte        buff[BUFFERLEN]; // Buffer of packet bytes
   word32      crc32;            // 32-bit CRC value
   word16      i;                // Loop counter (16 bit)
   word32      j;                // Loop counter (32 bit)
 
   // Initialize the CRC table
-  gen_crc_table();
+  gencrctable();
 
-  // Load buffer with BUFFER_LEN random bytes
-  for (i=0; i<BUFFER_LEN; i++)
+  // Load buffer with BUFFERLEN random bytes
+  for (i=0; i<BUFFERLEN; i++)
     buff[i] = (byte) rand();
 
   // Compute and output CRC
-  crc32 = update_crc(-1, buff, BUFFER_LEN);
+  crc32 = updatecrc(-1, buff, BUFFERLEN);
 }
 
 //=============================================================================
 //=  CRC32 table initialization                                               =
 //=============================================================================
-void gen_crc_table(void)
+void gencrctable(void)
 {
   register word16 i, j;
-  register word32 crc_accum;
+  register word32 crcaccum;
 
   for (i=0;  i<256;  i++)
   {
-    crc_accum = ( (word32) i << 24 );
+    crcaccum = ( (word32) i << 24 );
     for ( j = 0;  j < 8;  j++ )
     {
-      if ( crc_accum & 0x80000000L )
-        crc_accum = (crc_accum << 1) ^ POLYNOMIAL;
+      if ( crcaccum & 0x80000000L )
+        crcaccum = (crcaccum << 1) ^ POLYNOMIAL;
       else
-        crc_accum = (crc_accum << 1);
+        crcaccum = (crcaccum << 1);
     }
-    crc_table[i] = crc_accum;
+    crctable[i] = crcaccum;
   }
 }
 
 //=============================================================================
 //=  CRC32 generation                                                         =
 //=============================================================================
-word32 update_crc(word32 crc_accum, byte *data_blk_ptr, word32 data_blk_size)
+word32 updatecrc(word32 crcaccum, byte *datablkptr, word32 datablksize)
 {
    register word32 i, j;
 
-   for (j=0; j<data_blk_size; j++)
+   for (j=0; j<datablksize; j++)
    {
-     i = ((int) (crc_accum >> 24) ^ *data_blk_ptr++) & 0xFF;
-     crc_accum = (crc_accum << 8) ^ crc_table[i];
+     i = ((int) (crcaccum >> 24) ^ *datablkptr++) & 0xFF;
+     crcaccum = (crcaccum << 8) ^ crctable[i];
    }
-   crc_accum = ~crc_accum;
+   crcaccum = ~crcaccum;
 
-   return crc_accum;
+   return crcaccum;
 }

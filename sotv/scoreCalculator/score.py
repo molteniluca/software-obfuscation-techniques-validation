@@ -76,3 +76,10 @@ class Metrics:
         print(self.metrics_heat)
         print("trash_added")
         print(self.metrics_trash)
+
+    def get_dict(self):
+        return {
+            "old_variables": self.old_variables,
+            "metrics_heat": self.metrics_heat,
+            "trash_added": self.metrics_trash
+        }

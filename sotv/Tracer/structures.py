@@ -18,7 +18,7 @@ from typing import Mapping, Tuple
 
 
 # An enumeration of the 32 unprivileged RISC-V integer registers
-from sotv.Tracer.instruction_adapter import WriteAdapter, ReadOnlyAdapter, MoveAdapter
+from sotv.Tracer.instruction_adapter import MoveAdapter
 
 
 class Register(Enum):

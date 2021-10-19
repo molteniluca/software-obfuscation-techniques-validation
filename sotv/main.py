@@ -1,3 +1,5 @@
+import json
+import os
 import sys
 from os import system
 from sys import argv
@@ -13,6 +15,8 @@ tmp_folder = "./tmp/"
 
 
 def main():
+    obf_params = ("main", 3, 3)
+
     if len(argv) == 2 or len(argv) == 3:
         if argv[1] == "-h":
             print(f"Usage: {argv[0]} C_file/ASM_file [-t test obfuscated]")
@@ -20,11 +24,15 @@ def main():
         else:
             test_obf = len(argv) == 3 and argv[2] == "-t"
             if test_obf:
-                result = execute_obfuscated(argv[1], ("main", 3, 3))
+                result = execute_obfuscated(argv[1], obf_params)
             else:
                 result = execute_plain(argv[1])
 
-            result[0].print()
+            if test_obf:
+                save_score(result[1], obf_params)
+            else:
+                save_score(result[1], None)
+
             result[1].print()
     else:
         print("Error in parameters (-h for help)")
@@ -55,8 +63,10 @@ def execute_obfuscated(source_file: str, obfuscator_params: (str, int, int)):
         print("Compilation failed")
         exit(-1)
 
+    print("# RUNNING DUMP #\n")
     obf_success = False
     i = 0
+
     while not obf_success:
         i += 1
         try:
@@ -64,7 +74,7 @@ def execute_obfuscated(source_file: str, obfuscator_params: (str, int, int)):
             utils.obfuscate(asm_json, obfuscated_asm, *obfuscator_params)
             utils.compile_exec(obfuscated_asm, obfuscated_elf)
             try:
-                obf_execution_dump = edg.edg(argv[1], obf_exec_params)
+                obf_execution_dump = edg.edg(argv[1] + "_obf_" + str(obfuscator_params[1]) + "_" + str(obfuscator_params[2]), obf_exec_params)
                 obf_success = True
             except DumpFailedException as e:
                 obf_success = False
@@ -72,16 +82,10 @@ def execute_obfuscated(source_file: str, obfuscator_params: (str, int, int)):
             print("Failed obfuscation attempt:" + str(i))
             obf_success = False
 
-    local_vars, global_vars = offset_finder.offset_finder(symbols_elf)
-
     print("#### " + str(obf_execution_dump))
-    tracer = Tracer(local_vars, global_vars, obf_execution_dump)
-    tracer.start_trace(trace_no_symbols=True)
 
-    metrics = Metrics(tracer)
-    metrics.metric_score()
-
-    return tracer, metrics
+    tracer = run_trace(obf_execution_dump, symbols_elf, trace_no_symbols=True)
+    return tracer, run_score(tracer)
 
 
 def execute_plain(source_file: str):
@@ -105,23 +109,60 @@ def execute_plain(source_file: str):
         print("Compilation failed")
         exit(-1)
 
-    print("# RUNNING DUMP #\n")
-    start_time = time.time()
-    local_vars, global_vars = offset_finder.offset_finder(symbols_elf)
-    plain_execution_dump = edg.edg(argv[1], exec_params)
+    plain_execution_dump = run_dump(exec_params)
+    tracer = run_trace(plain_execution_dump, symbols_elf, trace_no_symbols=True)
+    return tracer, run_score(tracer)
 
+
+def run_dump(exec_params):
+    print("# EXECUTE DUMP #")
+    start_time = time.time()
+    plain_execution_dump = edg.edg(argv[1], exec_params)
     print("--- %s seconds ---" % (time.time() - start_time))
+    return plain_execution_dump
+
+
+def run_trace(plain_execution_dump, symbols_elf, trace_no_symbols=True):
     print("# EXECUTE TRACE #\n")
     start_time = time.time()
-    print("#### " + str(plain_execution_dump))
+    local_vars, global_vars = offset_finder.offset_finder(symbols_elf)
     tracer = Tracer(local_vars, global_vars, plain_execution_dump)
-    tracer.start_trace(trace_no_symbols=True)
+    tracer.start_trace(trace_no_symbols=trace_no_symbols)
+    print("--- %s seconds ---" % (time.time() - start_time))
+    return tracer
 
+
+def run_score(tracer):
+    print("# CALCULATE SCORE #")
+    start_time = time.time()
     metrics = Metrics(tracer)
     metrics.metric_score()
-
     print("--- %s seconds ---" % (time.time() - start_time))
-    return tracer, metrics
+    return metrics
+
+
+score_path = "./scoreCalculator/results/"
+
+
+def save_score(score, obf):
+    filename = score_path + argv[1].split("/")[-1]
+
+    filename += ".json"
+
+    if os.path.isfile(filename):
+        result = json.loads(open(filename, "r").read())
+    else:
+        result = {}
+
+    if obf is not None:
+        if str(obf[1]) + "_" + str(obf[2]) not in result.keys():
+            result[str(obf[1]) + "_" + str(obf[2])] = []
+        result[str(obf[1]) + "_" + str(obf[2])].append(score.get_dict())
+    else:
+        result["plain"] = score.get_dict()
+
+    with open(filename, "w") as f:
+        f.write(json.dumps(result, indent=4))
 
 
 if __name__ == "__main__":

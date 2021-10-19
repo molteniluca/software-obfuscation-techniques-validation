@@ -91,10 +91,10 @@ if __name__ == "__main__":
     exec_file = config["exec_file"]
 
     initialize_debug()
-    #try:
-    save_dump(step_until_end_and_dump())
-    #except Exception as e:
-    #    os.system("rm " + dump_output)
-    #    print("Failed debug")
+    try:
+        save_dump(step_until_end_and_dump())
+    except Exception as e:
+        os.system("rm " + dump_output)
+        print("Failed debug")
 
     gdb.execute("quit")  # Exits gdb
