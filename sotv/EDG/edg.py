@@ -10,36 +10,41 @@ from sotv.EDG.offset_finder import to_gdb_notation, offset_finder
 from sotv.Tracer.instruction import Instruction
 
 tmp_folder = "./EDG/tmp/"
-
-dump_file = "dump.json"
+dump_folder = "./EDG/dumps/"
 config_file = "EDG_conf.json"
 
 
-def edg(executable_params: list) -> ExecutionDump:
+def edg(name: str, executable_params: list) -> ExecutionDump:
     """
     This functions performs an execution and dumps data
+    @param name: name of the executed program
     @param executable_params: Argv, a list containing the executable name and parameters
     @return: An execution dump and a parsed instruction dictionary
     """
+
+    dump_file = dump_folder + name.split("/")[-1] + "_dump.json"
 
     config = {
         "registers": ["ra", "sp", "gp", "tp", "t0", "t1", "t2", "fp", "s1", "a0", "a1", "a2", "a3", "a4", "a5", "a6",
                       "a7", "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s9", "s10", "s11", "t3", "t4", "t5", "t6", "pc"],
         "main_function": "main",
         "c_variables": to_gdb_notation(*offset_finder(executable_params[0])),
-        "dump_file": tmp_folder + dump_file,
+        "dump_file": dump_file,
         "exec_file": executable_params[0]
     }
 
-    with open(tmp_folder + config_file, "w") as f:
-        f.write(json.dumps(config))
+    if not os.path.exists(dump_folder):
+        os.makedirs(dump_folder)
 
-    # Starts qemu session in background
-    subprocess.Popen(["qemu-riscv64-static", "-g", "1234"] + executable_params)
-    subprocess.run(["gdb-multiarch", "-command=./EDG/edg_script.py", "-batch-silent"])
+    if not os.path.isfile(dump_file):
+        with open(tmp_folder + config_file, "w") as f:
+            f.write(json.dumps(config))
+        # Starts qemu session in background
+        subprocess.Popen(["qemu-riscv64-static", "-g", "1234"] + executable_params)
+        subprocess.run(["gdb-multiarch", "-command=./EDG/edg_script.py", "-batch-silent"])
 
     try:
-        dump = json.loads(open(tmp_folder + dump_file, "r").read())
+        dump = json.loads(open(dump_file, "r").read())
     except FileNotFoundError as e:
         raise DumpFailedException
 

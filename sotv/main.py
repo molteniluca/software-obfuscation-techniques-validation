@@ -64,7 +64,7 @@ def execute_obfuscated(source_file: str, obfuscator_params: (str, int, int)):
             utils.obfuscate(asm_json, obfuscated_asm, *obfuscator_params)
             utils.compile_exec(obfuscated_asm, obfuscated_elf)
             try:
-                obf_execution_dump = edg.edg(obf_exec_params)
+                obf_execution_dump = edg.edg(argv[1], obf_exec_params)
                 obf_success = True
             except DumpFailedException as e:
                 obf_success = False
@@ -108,7 +108,7 @@ def execute_plain(source_file: str):
     print("# RUNNING DUMP #\n")
     start_time = time.time()
     local_vars, global_vars = offset_finder.offset_finder(symbols_elf)
-    plain_execution_dump = edg.edg(exec_params)
+    plain_execution_dump = edg.edg(argv[1], exec_params)
 
     print("--- %s seconds ---" % (time.time() - start_time))
     print("# EXECUTE TRACE #\n")
