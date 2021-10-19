@@ -8,17 +8,12 @@ instructions -- the instructions of the program
 """
 import multiprocessing
 import threading
-from concurrent.futures import ProcessPoolExecutor
 from multiprocessing import Process
-from pprint import pprint
 from typing import Dict, Set
-
 from mergedeep import merge
-
 from sotv.EDG import execution_dump
 from sotv.EDG.execution_dump import DumpLine
 from sotv.Tracer.structures import Register, store_opcodes, load_opcodes
-from concurrent.futures import ThreadPoolExecutor
 
 
 class Tracer:
@@ -82,16 +77,16 @@ class Tracer:
                 # Default name is hex(address) in case of missing symbol, do not trace in case trace_no_symbols == False
                 if not name_found and trace_no_symbols:
                     to_do.append((hex(address), temp_ins, dump_line))
-        print("FINISHED CREATING TASK")
+        print("FINISHED CREATING TASKS")
         p_list = []
 
-        for i in range(20):
+        for i in range(12):
             p_list.append(Process(target=self.execute_trace, args=(to_do, i, return_dict)))
 
-        for i in range(20):
+        for i in range(12):
             p_list[i].start()
 
-        for i in range(20):
+        for i in range(12):
             p_list[i].join()
 
         a = {}
@@ -100,7 +95,7 @@ class Tracer:
             self.tracing_graph[self.execution_dump.dump[el]] = a[el]
 
     def execute_trace(self, to_do, i, return_dict):
-        for k in range(i, len(to_do), 20):
+        for k in range(i, len(to_do), 12):
             self.trace_variable(*to_do[k])
             print(str(k) + "/" + str(len(to_do)))
         return_dict[i] = self.tracing_graph
@@ -113,20 +108,14 @@ class Tracer:
         @param dump_line: The dump_line referencing that instruction
         """
 
-        # Check if this variable has been already traced
-        if variable not in self.already_used.keys():
-            # Initializes the variable different values counter
-            self.already_used[variable] = -1
-
-        self.already_used[variable] += 1
-        self.add_variable(variable+"_"+str(self.already_used[variable]), temp_ins.r1, dump_line)
+        self.add_variable(variable+"_"+str(dump_line), temp_ins.r1, dump_line)
 
         # Check whether is a load type or a store type and starts the trace
         if temp_ins.opcode in load_opcodes:
-            self.check_after(temp_ins.modified_register(), variable+"_"+str(self.already_used[variable]), dump_line)
+            self.check_after(temp_ins.modified_register(), variable+"_"+str(dump_line), dump_line)
         elif temp_ins.opcode in store_opcodes:
-            self.check_before(temp_ins.r1, variable+"_"+str(self.already_used[variable]), dump_line)
-            self.check_after(temp_ins.r1, variable+"_"+str(self.already_used[variable]), dump_line)
+            self.check_before(temp_ins.r1, variable+"_"+str(dump_line), dump_line)
+            self.check_after(temp_ins.r1, variable+"_"+str(dump_line), dump_line)
 
     def check_before(self, register, variable, dump_line):
         """

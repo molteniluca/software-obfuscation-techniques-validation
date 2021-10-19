@@ -1,1 +1,2 @@
-pyelftools
+pyelftools~=0.27
+mergedeep~=1.3.4

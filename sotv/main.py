@@ -24,7 +24,7 @@ def main():
             else:
                 result = execute_plain(argv[1])
 
-            # result[0].print()
+            result[0].print()
             result[1].print()
     else:
         print("Error in parameters (-h for help)")
