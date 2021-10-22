@@ -89,7 +89,7 @@ void decreaseKey(int vert, int dist) {
 }
 
 heap_node *extractMin(){
-    if (minHeap->size<1)
+    if (minHeap->size==0)
         return NULL;
     heap_node *heapRoot = minHeap->nodeList[0];
     heap_node *heapLeaf = minHeap->nodeList[minHeap->size - 1];
