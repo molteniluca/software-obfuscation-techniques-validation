@@ -10,7 +10,8 @@ from typing import Dict, Set
 
 from sotv.EDG import execution_dump
 from sotv.EDG.execution_dump import DumpLine
-from sotv.Tracer.structures import Register, store_opcodes, load_opcodes
+from sotv.Tracer.defines import store_opcodes, load_opcodes
+from sotv.Tracer.structures import Register
 
 
 class Tracer:
@@ -89,6 +90,8 @@ class Tracer:
         @param temp_ins: The instruction from witch the trace starts
         @param dump_line: The dump_line referencing that instruction
         """
+        if temp_ins.r1 == "zero":
+            return
 
         # Check if this variable has been already traced
         if variable not in self.already_used.keys():

@@ -1,6 +1,8 @@
 from sotv.Tracer import tracer
 from typing import Dict
-from sotv.Tracer.structures import Register, not_trash_registers
+
+from sotv.Tracer.defines import not_trash_registers
+from sotv.Tracer.structures import Register
 
 
 # Updates the dictionary of the variable at his last edit

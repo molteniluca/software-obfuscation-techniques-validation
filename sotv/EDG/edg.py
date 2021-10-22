@@ -37,7 +37,7 @@ def edg(name: str, executable_params: list, ignore_cache: bool = False) -> Execu
     if not os.path.exists(dump_folder):
         os.makedirs(dump_folder)
 
-    if not os.path.isfile(dump_file) or ignore_cache:
+    if not os.path.isfile(dump_file) and not ignore_cache:
         with open(tmp_folder + config_file, "w") as f:
             f.write(json.dumps(config))
         # Starts qemu session in background

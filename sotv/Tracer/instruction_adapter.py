@@ -1,6 +1,7 @@
 """"
 This interface handle the tracing after a specific type of instruction
 """
+from sotv.Tracer.defines import load_opcodes, store_opcodes
 
 
 class AdapterInterface:
@@ -65,6 +66,17 @@ class WriteAdapter(AdapterInterface):
 
     def adapt(self, register: str, variable: str, reference, tracer, is_check_after: bool):
         instruction = tracer.execution_dump.dump[reference].executed_instruction
+
+        if (instruction.opcode not in load_opcodes and instruction.opcode not in store_opcodes) \
+                and (instruction.r2 == register or instruction.r3 == register):
+            if len(variable.split("t_")) == 2:
+                new_var = str(reference) + "t_" + variable.split("t_")[1]
+            else:
+                new_var = str(reference) + "t_" + variable
+            tracer.add_variable(new_var, instruction.modified_register(), reference)
+            if is_check_after:
+                tracer.check_after(instruction.modified_register(), new_var, reference)
+
         if instruction.modified_register() != register:
             tracer.add_variable(variable, register, reference)
 
