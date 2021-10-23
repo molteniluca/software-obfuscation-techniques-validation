@@ -90,6 +90,9 @@ class Tracer:
         @param dump_line: The dump_line referencing that instruction
         """
 
+        if temp_ins.r1 == 'zero':
+            return
+
         # Check if this variable has been already traced
         if variable not in self.already_used.keys():
             # Initializes the variable different values counter

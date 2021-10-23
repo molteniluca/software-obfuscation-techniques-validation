@@ -1,0 +1,3 @@
+[submodule "sotv/Obfuscator/RISCV-Obfuscator"]
+	path = sotv/Obfuscator/RISCV-Obfuscator
+	url = https://github.com/zoythum/RISCV-Obfuscator.git
