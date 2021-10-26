@@ -16,7 +16,6 @@ imm_sizes -- a dictionary associating instruction formats possessing an immediat
 from enum import Enum
 from typing import Mapping, Tuple
 
-
 # An enumeration of the 32 unprivileged RISC-V integer registers
 from sotv.Tracer.instruction_adapter import MoveAdapter
 
@@ -73,7 +72,8 @@ opcodes: Mapping[str, Tuple[int, bool, type]] = {
     'lw': (2, True), 'lbu': (2, True), 'lhu': (2, True), 'addi': (2, True), 'slti': (2, True),
     'sltiu': (2, True), 'xori': (2, True), 'ori': (2, True), 'andi': (2, True), 'slli': (2, True),
     'srli': (2, True), 'srai': (2, True), 'lwu': (2, True), 'ld': (2, True), 'addiw': (2, True),
-    'slliw': (2, True), 'srliw': (2, True), 'sext.w': (2, True), 'mv': (2, True, MoveAdapter), 'sraiw': (2, True), 'lr.w': (2, True),
+    'slliw': (2, True), 'srliw': (2, True), 'sext.w': (2, True), 'mv': (2, True, MoveAdapter), 'sraiw': (2, True),
+    'lr.w': (2, True),
     'lr.d': (2, True), 'add': (3, True), 'sub': (3, True), 'sll': (3, True), 'slt': (3, True),
     'sltu': (3, True), 'xor': (3, True), 'srl': (3, True), 'sra': (3, True), 'or': (3, True), 'and': (3, True),
     'addw': (3, True), 'subw': (3, True), 'sllw': (3, True), 'srlw': (3, True), 'sraw': (3, True), 'mul': (3, True),
@@ -87,7 +87,8 @@ opcodes: Mapping[str, Tuple[int, bool, type]] = {
     'beq': (2, False), 'bne': (2, False), 'blt': (2, False), 'bge': (2, False), 'ble': (2, False), 'bltu': (2, False),
     'bgeu': (2, False), 'sb': (2, False), 'sh': (2, False), 'sw': (2, False), 'sd': (2, False), 'li': (1, True),
     'beqz': (1, False), 'bnez': (1, False), 'blez': (1, False), "bgt": (2, False), "not": (2, True), "snez": (2, True),
-    'bgez': (1, False), 'bgtu': (2, False), 'bleu': (2, False), 'nop': (0, False), 'call': (0, False), "bgtz": (2, False)
+    'bgez': (1, False), 'bgtu': (2, False), 'bleu': (2, False), 'nop': (0, False), 'call': (0, False),
+    "bgtz": (2, False)
 }
 
 store_opcodes = ["sw", "sb", "sh", "sd"]
@@ -110,3 +111,21 @@ imm_sizes: Mapping[str, int] = {
     "j": 20,
     "li": 32
 }
+
+
+class Variable:
+    name: str
+    updated: bool
+
+    def __init__(self, name, status=True):
+        self.name = name
+        self.updated = status
+
+    def change_status(self, status):
+        self.updated = status
+
+    def get_status(self):
+        return self.updated
+
+    def get_name(self):
+        return self.name
