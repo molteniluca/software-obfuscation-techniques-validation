@@ -16,6 +16,8 @@ imm_sizes -- a dictionary associating instruction formats possessing an immediat
 from enum import Enum
 from typing import Mapping, Tuple
 
+
+# An enumeration of the 32 unprivileged RISC-V integer registers
 from sotv.Tracer.instruction_adapter import MoveAdapter
 
 
@@ -88,11 +90,17 @@ opcodes: Mapping[str, Tuple[int, bool, type]] = {
     'bgez': (1, False), 'bgtu': (2, False), 'bleu': (2, False), 'nop': (0, False), 'call': (0, False), "bgtz": (2, False)
 }
 
+store_opcodes = ["sw", "sb", "sh", "sd"]
+load_opcodes = ["lb", "lh", "lw", "lbu", "lhu", "lwu", "ld"]
+
 # Registers
 registers = ["ra", "sp", "gp", "tp", "t0", "t1", "t2", "t3", "t4", "t5", "t6", "s0", "s1", "s2", "s3", "s4",
              "s5", "s6", "s7", "s8", "s9", "s10", "s11", "a0", "a1", "a2", "a3", "a4", "a5", "a6", "a7",
              "zero", "reg_err", "unused"]
 
+not_trash_registers = ["gp", "tp", "zero"]
+
+ignored_registers = ["s0", "ra"]
 
 # Dictionary of immediate formats with associated immediate field size
 imm_sizes: Mapping[str, int] = {
@@ -104,3 +112,12 @@ imm_sizes: Mapping[str, int] = {
     "j": 20,
     "li": 32
 }
+
+
+class Variable:
+    tmp: bool
+    count: int
+
+    def __init__(self, tmp):
+        self.count = 1
+        self.tmp = tmp
