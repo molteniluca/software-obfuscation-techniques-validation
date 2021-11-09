@@ -6,16 +6,16 @@ node --  a map[at this instruction, map[in this registers, there are this list o
 offsets -- a map[variables, offset with fp]
 instructions -- the instructions of the program
 """
-from typing import Dict, Set
+from typing import Dict, Tuple, List
 
 from sotv.EDG import execution_dump
 from sotv.EDG.execution_dump import DumpLine
 from sotv.Tracer.defines import store_opcodes, load_opcodes
-from sotv.Tracer.structures import Register, Variable, ignored_registers
+from sotv.Tracer.structures import Register, ignored_registers
 
 
 class Tracer:
-    tracing_graph: Dict[DumpLine, Dict[Register, Set[Variable]]]  # {DumpLine, { register, [str(var)]}
+    tracing_graph: Dict[DumpLine, Dict[Register, Dict[str, List[Tuple[str, bool]]]]]
     function_offsets: Dict[str, Dict[str, int]]  # initialize by file
     global_offsets: Dict[str, int]
     execution_dump: execution_dump.ExecutionDump
@@ -179,15 +179,15 @@ class Tracer:
         if register not in self.tracing_graph[dump_line].keys():
             self.tracing_graph[dump_line][register] = dict()
 
-        if len(variable)==3:
+        if len(variable) == 3:
             name, num, tmp = variable
         else:
-            name, num, tmp, cos = variable
+            name, num, tmp, count = variable
 
-        if (name, num) in self.tracing_graph[dump_line][register].keys():
-            pass
-        else:
-            self.tracing_graph[dump_line][register][(name, num)] = (tmp, 1)
+        if name not in self.tracing_graph[dump_line][register].keys():
+            self.tracing_graph[dump_line][register][name] = []
+
+        self.tracing_graph[dump_line][register][name].append((num, tmp))
 
     def verify(self):
         """

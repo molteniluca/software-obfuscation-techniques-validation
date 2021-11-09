@@ -37,14 +37,12 @@ class MoveAdapter(AdapterInterface):
         else:
             if is_check_after:
                 tracer.add_variable(variable, register, reference)
-                # tracer.check_after(register, variable, reference)
                 if instruction.r2 == register:
                     tracer.add_variable(variable, instruction.modified_register(), reference)
                     tracer.check_after(instruction.modified_register(), variable, reference)
                 return True
             else:
                 tracer.add_variable(variable, register, reference)
-                # tracer.check_before(register, variable, reference)
                 return True
 
 
@@ -53,12 +51,7 @@ class ReadOnlyAdapter(AdapterInterface):
 
     def adapt(self, register: str, variable: str, reference, tracer, is_check_after: bool):
         tracer.add_variable(variable, register, reference)
-        if is_check_after:
-            return True
-            # tracer.check_after(register, variable, reference)
-        else:
-            return True
-            # tracer.check_before(register, variable, reference)
+        return True
 
 
 class WriteAdapter(AdapterInterface):
@@ -80,21 +73,14 @@ class WriteAdapter(AdapterInterface):
 
         if not is_check_after and (instruction.opcode not in load_opcodes and instruction.opcode not in store_opcodes):
             if instruction.modified_register() == register:
-                if reference-1 > 0:
-                    if instruction.r2 != "unused":
-                        tracer.check_before(instruction.r2, (variable[0], variable[1], True, 250), reference)
-                    if instruction.r3 != "unused":
-                        tracer.check_before(instruction.r3, (variable[0], variable[1], True, 250), reference)
+                if instruction.r2 != "unused":
+                    tracer.check_before(instruction.r2, (variable[0], variable[1], True, 250), reference)
+                if instruction.r3 != "unused":
+                    tracer.check_before(instruction.r3, (variable[0], variable[1], True, 250), reference)
 
         if instruction.modified_register() != register:
             tracer.add_variable(variable, register, reference)
-
-            if is_check_after:
-                return True
-                # tracer.check_after(register, variable, reference)
-            else:
-                return True
-                # tracer.check_before(register, variable, reference)
+            return True
         else:
             if not is_check_after:
                 tracer.add_variable(variable, register, reference)

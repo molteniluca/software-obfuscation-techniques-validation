@@ -112,12 +112,3 @@ imm_sizes: Mapping[str, int] = {
     "j": 20,
     "li": 32
 }
-
-
-class Variable:
-    tmp: bool
-    count: int
-
-    def __init__(self, tmp):
-        self.count = 1
-        self.tmp = tmp
