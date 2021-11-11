@@ -6,7 +6,7 @@ node --  a map[at this instruction, map[in this registers, there are this list o
 offsets -- a map[variables, offset with fp]
 instructions -- the instructions of the program
 """
-from typing import Dict, Tuple, List
+from typing import Dict
 
 from sotv.EDG import execution_dump
 from sotv.EDG.execution_dump import DumpLine
@@ -15,7 +15,7 @@ from sotv.Tracer.structures import Register, ignored_registers
 
 
 class Tracer:
-    tracing_graph: Dict[DumpLine, Dict[Register, Dict[str, List[Tuple[str, bool]]]]]
+    tracing_graph: Dict[DumpLine, Dict[Register, Dict[str, Dict[str, bool]]]]
     function_offsets: Dict[str, Dict[str, int]]  # initialize by file
     global_offsets: Dict[str, int]
     execution_dump: execution_dump.ExecutionDump
