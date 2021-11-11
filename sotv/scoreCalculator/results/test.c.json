@@ -1,22 +1,11 @@
 {
     "plain": {
-        "old_variables": {
-            "a0": 14,
-            "a5": 11
-        },
+        "old_variables": {},
         "metrics_heat": {
-            "a5": 16,
-            "a0": 7,
-            "a4": 11
+            "a5": 10,
+            "a0": 4
         },
-        "trash_added": {
-            "a5": 4,
-            "a4": 2,
-            "a0": 4,
-            "s0": 4,
-            "sp": 4,
-            "ra": 2
-        }
+        "trash_added": {}
     },
     "3_3": [
         {
