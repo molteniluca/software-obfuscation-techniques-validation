@@ -185,9 +185,12 @@ class Tracer:
             name, num, tmp, count = variable
 
         if name not in self.tracing_graph[dump_line][register].keys():
-            self.tracing_graph[dump_line][register][name] = []
+            self.tracing_graph[dump_line][register][name] = {}
 
-        self.tracing_graph[dump_line][register][name].append((num, tmp))
+        if num in self.tracing_graph[dump_line][register][name].keys():
+            self.tracing_graph[dump_line][register][name][num] = self.tracing_graph[dump_line][register][name][num] and tmp
+        else:
+            self.tracing_graph[dump_line][register][name][num] = tmp
 
     def verify(self):
         """
