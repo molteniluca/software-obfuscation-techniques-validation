@@ -7,25 +7,29 @@ from sotv.Tracer.structures import Register
 
 # Updates the dictionary of the variable at his last edit
 def lock(variables, registers_status):
-    temp1_list = []
-    for elem in variables:
-        temp1_list.append(elem.split("_")[0])
+    variables_names = variables.keys()
     for reg in registers_status:
-        for temp in registers_status[reg]:
-            temp_list = temp.split("_")
-            if temp_list[0] not in temp1_list:
-                variables.append(temp)
-            for elem in variables:
-                if elem.split("_")[0] == temp_list[0]:
-                    if elem.split("_")[1] < temp_list[1]:
-                        variables.remove(elem)
-                        variables.append(temp)
+        for temp in registers_status[reg].keys():
+            if temp not in variables_names:
+                for number in registers_status[reg][temp].keys():
+                    try:
+                        if variables[temp] < number:
+                            variables[temp] = number
+                    except KeyError:
+                        variables[temp] = number
+            for elem in variables.keys():
+                if elem == temp:
+                    for number in registers_status[reg][temp].keys():
+                        if variables[temp] < number:
+                            variables[elem] = number
 
 
 def verify(variables, register):
     for elem in register:
-        if elem in variables:
-            return True
+        if elem in variables.keys():
+            for number in register[elem].keys():
+                if number == variables[elem]:
+                    return True
     return False
 
 
@@ -42,7 +46,7 @@ class Metrics:
         self.old_variables = {}
 
     def metric_score(self):
-        lock_list = []
+        variables = {}
         for instruction in self.tracer.execution_dump.dump:
             try:
                 registers_status = self.tracer.tracing_graph[instruction]
@@ -50,8 +54,8 @@ class Metrics:
                 registers_status = None
             if registers_status is not None:
                 for reg in registers_status.keys():
-                    lock(lock_list, registers_status)
-                    if verify(lock_list, registers_status[reg]):
+                    lock(variables, registers_status)
+                    if verify(variables, registers_status[reg]):
                         if reg in self.metrics_heat.keys():
                             self.metrics_heat[reg] += 1
                         else:
