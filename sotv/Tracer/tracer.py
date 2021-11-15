@@ -20,7 +20,8 @@ class Tracer:
     global_offsets: Dict[str, int]
     execution_dump: execution_dump.ExecutionDump
 
-    def __init__(self, local_vars, global_vars, dump):
+    def __init__(self, local_vars, global_vars, dump, tmp_variables_propagation=150):
+        self.tmp_variables_propagation = tmp_variables_propagation
         self.global_offsets = global_vars
         self.function_offsets = local_vars
         dump.dump = dump.dump[1:]
@@ -34,8 +35,7 @@ class Tracer:
         """
         Creates the variable trace over the instructions and registers
         """
-
-        print(len(self.execution_dump.dump))
+        print("Dump length:" + len(self.execution_dump.dump))
         i = 0
         old_percentage = 0
         # Loop trough dump lines

@@ -69,14 +69,14 @@ class WriteAdapter(AdapterInterface):
 
             tracer.add_variable((variable[0], variable[1], True, 250), instruction.modified_register(), reference)
             if is_check_after:
-                tracer.check_after(instruction.modified_register(), (variable[0], variable[1], True, 250), reference)
+                tracer.check_after(instruction.modified_register(), (variable[0], variable[1], True, tracer.tmp_variables_propagation), reference)
 
         if not is_check_after and (instruction.opcode not in load_opcodes and instruction.opcode not in store_opcodes):
             if instruction.modified_register() == register:
                 if instruction.r2 != "unused":
-                    tracer.check_before(instruction.r2, (variable[0], variable[1], True, 250), reference)
+                    tracer.check_before(instruction.r2, (variable[0], variable[1], True, tracer.tmp_variables_propagation), reference)
                 if instruction.r3 != "unused":
-                    tracer.check_before(instruction.r3, (variable[0], variable[1], True, 250), reference)
+                    tracer.check_before(instruction.r3, (variable[0], variable[1], True, tracer.tmp_variables_propagation), reference)
 
         if instruction.modified_register() != register:
             tracer.add_variable(variable, register, reference)
