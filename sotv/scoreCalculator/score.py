@@ -1,7 +1,7 @@
 from sotv.Tracer import tracer
 from typing import Dict
 
-from sotv.Tracer.defines import not_trash_registers
+
 from sotv.Tracer.structures import Register
 
 
@@ -24,7 +24,7 @@ def lock(variables, registers_status):
                             variables[elem] = number
 
 
-def verify(variables, register):
+def verify_is_update(variables, register):
     for elem in register:
         if elem in variables.keys():
             for number in register[elem].keys():
@@ -33,10 +33,14 @@ def verify(variables, register):
     return False
 
 
+def verify_elem_in_dict(reg, metric, variables, variable_name, reg_status):
+    if reg in metric.keys() and variable_name in metric[reg].keys() and variables[variable_name] in reg_status[reg][variable_name].keys():
+        return True
+    return False
+
+
 class Metrics:
-    metrics_heat: Dict[Register, int]
-    metrics_trash: Dict[Register, int]
-    old_variables: Dict[Register, int]
+    metrics_heat: Dict[Register, Dict[str, int]]
     tracer: tracer.Tracer
 
     def __init__(self, completed_tracer):
@@ -55,37 +59,31 @@ class Metrics:
             if registers_status is not None:
                 for reg in registers_status.keys():
                     lock(variables, registers_status)
-                    if verify(variables, registers_status[reg]):
-                        if reg in self.metrics_heat.keys():
-                            self.metrics_heat[reg] += 1
-                        else:
-                            self.metrics_heat[reg] = 1
-                    else:
-                        if reg in self.old_variables.keys():
-                            self.old_variables[reg] += 1
-                        else:
-                            self.old_variables[reg] = 1
-                        self.trash_detector(instruction.executed_instruction.modified_register())
+                    if verify_is_update(variables, registers_status[reg]):
+                        for var_name in registers_status[reg].keys():
+                            if verify_elem_in_dict(reg, self.metrics_heat, variables, var_name, registers_status):
+                                self.metrics_heat[reg][var_name] += 1
+                            else:
+                                try:
+                                    self.metrics_heat[reg][var_name] = 1
+                                except KeyError:
+                                    self.metrics_heat[reg] = {var_name: 1}
 
-    def trash_detector(self, register):
-        if register is not None:
-            if register not in not_trash_registers:
-                if register in self.metrics_trash.keys():
-                    self.metrics_trash[register] += 1
-                else:
-                    self.metrics_trash[register] = 1
+#    @deprecated
+#    use to track not correlated changes to the code
+#    def trash_detector(self, register):
+#        if register is not None:
+#            if register not in not_trash_registers:
+#                if register in self.metrics_trash.keys():
+#                    self.metrics_trash[register] += 1
+#                else:
+#                    self.metrics_trash[register] = 1
 
     def print(self):
-        print("old_variables")
-        print(self.old_variables)
         print("metrics_heat")
         print(self.metrics_heat)
-        print("trash_added")
-        print(self.metrics_trash)
 
     def get_dict(self):
         return {
-            "old_variables": self.old_variables,
             "metrics_heat": self.metrics_heat,
-            "trash_added": self.metrics_trash
         }
