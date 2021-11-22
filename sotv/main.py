@@ -95,16 +95,25 @@ def execute_plain(source_file: str):
     executable_elf = tmp_folder + "test.out"
     symbols_elf = tmp_folder + "test.out"
     asm = tmp_folder + "out_no_symbols.s"
-    exec_params = [executable_elf]
 
     print("# STARTING COMPILING STAGE #\n")
     try:
         if source_file[-len(".json"):] == ".json":
+            exec_params = [executable_elf]
             utils.obfuscate(argv[1], asm, "main", 0, 0)
             utils.compile_exec(asm, executable_elf)
         else:
-            utils.compile_exec(argv[1], executable_elf)
-            utils.compile_asm_nosymbols(argv[1], asm)
+            # Test Purpose
+            if source_file == './programSamples/New_Patricia/patricia_test.c':
+                path = "./programSamples/New_Patricia/"
+                exec_params = [executable_elf, "./programSamples/New_Patricia/small.udp"]
+                utils.compile_lib_patricia()
+                utils.compile_patricia(argv[1], executable_elf, path)
+                utils.compile_patricia_nosymbols(argv[1], asm, path)
+            else:
+                exec_params = [executable_elf]
+                utils.compile_exec(argv[1], executable_elf)
+                utils.compile_asm_nosymbols(argv[1], asm)
     except SubProcessFailedException as e:
         print("Compilation failed")
         exit(-1)
