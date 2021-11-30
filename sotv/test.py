@@ -7,6 +7,8 @@ from sotv.EDG import edg
 from sotv.EDG.exceptions.DumpFailedException import DumpFailedException
 from sotv.exceptions.SubProcessFailedException import SubProcessFailedException
 from sotv.main import compile_program, execute_plain, run_trace, run_score
+from sotv.programSamples.New_Susan.compile_susan import compile_program_susan
+from sotv.programSamples.New_Patricia.compile_patricia import compile_program_patricia
 
 program_folder = "./programSamples"
 score_path = "./scoreCalculator/results_bulk/"
@@ -35,7 +37,13 @@ def test_bulk():
     obfuscated_folder = "./programSamples/benchmark_output"
 
     program_list = [
-        ("bubbleSort/bubblesort_old.c", compile_program, [])
+        ("bubbleSort/bubblesort_old.c", compile_program, []),
+        ("dijkstra/dijkstra.c", compile_program, []),
+        ("fibonacci/fibonacci.c", compile_program, []),
+        ("New_CRC/crc_32_old.c", compile_program, []),
+        ("quickSort/quickSort.c", compile_program, []),
+        ("New_Susan/susan.c", compile_program_susan, ["input_small.pgm"]),
+        ("New_Patricia/patricia_test.c", compile_program_patricia, ["small.udp"])
     ]
 
     test_list = [

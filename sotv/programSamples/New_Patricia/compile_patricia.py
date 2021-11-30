@@ -1,6 +1,5 @@
 from os import system
 
-from sotv import utils
 from sotv.exceptions.SubProcessFailedException import SubProcessFailedException
 
 
@@ -27,6 +26,6 @@ def compile_patricia_nosymbols(input_path: str, output_path: str, path):
 
 def compile_program_patricia(source_file, executable_elf, asm, folder):
     folder = "./programSamples/New_Patricia/"
-    utils.compile_lib_patricia()
-    utils.compile_patricia(source_file, executable_elf, folder)
-    utils.compile_patricia_nosymbols(source_file, asm, folder)
+    compile_lib_patricia()
+    compile_patricia(source_file, folder + executable_elf, folder)
+    compile_patricia_nosymbols(source_file, folder + asm, folder)

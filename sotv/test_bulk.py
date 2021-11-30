@@ -1,6 +1,7 @@
 import os
 from sotv.main import execute_obfuscated, compile_program, execute_plain
 from sotv.programSamples.New_Patricia.compile_patricia import compile_program_patricia
+from sotv.programSamples.New_Susan.compile_susan import compile_program_susan
 
 program_folder = "./programSamples"
 
@@ -8,13 +9,16 @@ program_folder = "./programSamples"
 def test_bulk():
     program_list = [
         ("bubbleSort/bubblesort_old.c", compile_program, []),
-        ("patricia_test.c", compile_program_patricia, ["small.udp"])
+        ("dijkstra/dijkstra.c", compile_program, []),
+        ("fibonacci/fibonacci.c", compile_program, []),
+        ("New_CRC/crc_32_old.c", compile_program, []),
+        ("quickSort/quickSort.c", compile_program, []),
+        ("New_Susan/susan.c", compile_program_susan, ["input_small.pgm"]),
+        ("New_Patricia/patricia_test.c", compile_program_patricia, ["small.udp"])
     ]
 
     test_list = [
-        None,
-        ("main", 1, 1),
-        ("main", 2, 2)
+        None
     ]
 
     trace_dict = {}
