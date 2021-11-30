@@ -1,7 +1,6 @@
 import json
 import os
 import sys
-from os import system
 from sys import argv
 import utils
 from sotv.EDG import offset_finder, edg
@@ -10,8 +9,6 @@ from sotv.Tracer.tracer import Tracer
 from sotv.exceptions.SubProcessFailedException import SubProcessFailedException
 from sotv.scoreCalculator.score import Metrics
 import time
-
-tmp_folder = "./tmp/"
 
 
 def main():
@@ -29,39 +26,36 @@ def main():
                 result = execute_plain(argv[1])
 
             if test_obf:
-                save_score(result[1], obf_params)
+                save_score(run_score(result), obf_params)
             else:
-                save_score(result[1], None)
-
-            result[1].print()
+                save_score(run_score(result), None)
     else:
         print("Error in parameters (-h for help)")
         exit(1)
 
 
-def execute_obfuscated(source_file: str, obfuscator_params: (str, int, int)):
-    sys.setrecursionlimit(10 ** 4)
-    system("rm " + tmp_folder + "*")
-
-    obfuscated_elf = tmp_folder + "obf.out"
-    obfuscated_asm = tmp_folder + "obf.s"
-    symbols_elf = tmp_folder + "test.out"
-    asm = tmp_folder + "out_no_symbols.s"
-    asm_json = tmp_folder + "out_no_symbols.json"
-    obf_exec_params = [obfuscated_elf]
-    executable_elf = tmp_folder + "test.out"
-
+def compile_program(source_file, executable_elf, asm, destination_folder, O=0):
     print("# STARTING COMPILING STAGE #\n")
     try:
-        if source_file[-len(".json"):] == ".json":
-            utils.obfuscate(argv[1], asm, "main", 0, 0)
-            utils.compile_exec(asm, executable_elf)
-        else:
-            utils.compile_exec(argv[1], executable_elf)
-            utils.compile_asm_nosymbols(argv[1], asm)
+        utils.compile_exec(source_file, os.path.join(destination_folder, executable_elf), O=O)
+        utils.compile_asm_nosymbols(source_file, os.path.join(destination_folder, asm))
     except SubProcessFailedException as e:
         print("Compilation failed")
         exit(-1)
+
+
+def execute_obfuscated(source_file: str, obfuscator_params: (str, int, int), compile_method=compile_program, args=[]):
+    sys.setrecursionlimit(10 ** 4)
+
+    folder = os.path.dirname(source_file)
+    obfuscated_elf = os.path.join(folder, "obf.out")
+    obfuscated_asm = os.path.join(folder, "obf.s")
+    asm = "out_no_symbols.s"
+    asm_json = os.path.join(folder, "out_no_symbols.json")
+    obf_exec_params = [obfuscated_elf] + args
+    executable_elf = "test.out"
+
+    compile_method(source_file, executable_elf, asm, folder)
 
     print("# RUNNING DUMP #\n")
     obf_success = False
@@ -70,11 +64,12 @@ def execute_obfuscated(source_file: str, obfuscator_params: (str, int, int)):
     while not obf_success:
         i += 1
         try:
-            utils.parse(asm, asm_json)
+            utils.parse(os.path.join(folder, asm), asm_json)
             utils.obfuscate(asm_json, obfuscated_asm, *obfuscator_params)
             utils.compile_exec(obfuscated_asm, obfuscated_elf)
             try:
-                obf_execution_dump = edg.edg(argv[1] + "_obf_" + str(obfuscator_params[1]) + "_" + str(obfuscator_params[2]), obf_exec_params, ignore_cache=False)
+                obf_execution_dump = edg.edg(source_file + "_obf_" + str(obfuscator_params[1]) + "_" +
+                                             str(obfuscator_params[2]), obf_exec_params, ignore_cache=True)
                 obf_success = True
             except DumpFailedException as e:
                 obf_success = False
@@ -84,49 +79,29 @@ def execute_obfuscated(source_file: str, obfuscator_params: (str, int, int)):
 
     print("#### " + str(obf_execution_dump))
 
-    tracer = run_trace(obf_execution_dump, symbols_elf, trace_no_symbols=True)
-    return tracer, run_score(tracer)
+    tracer = run_trace(obf_execution_dump, os.path.join(folder, executable_elf), trace_no_symbols=True)
+    return tracer
 
 
-def execute_plain(source_file: str):
+def execute_plain(source_file: str, compile_method=compile_program, args=[]):
     sys.setrecursionlimit(10 ** 4)
-    system("rm " + tmp_folder + "*")
 
-    executable_elf = tmp_folder + "test.out"
-    symbols_elf = tmp_folder + "test.out"
-    asm = tmp_folder + "out_no_symbols.s"
+    executable_elf = "test.out"
+    asm = "out_no_symbols.s"
+    folder = os.path.dirname(source_file)
 
-    print("# STARTING COMPILING STAGE #\n")
-    try:
-        if source_file[-len(".json"):] == ".json":
-            exec_params = [executable_elf]
-            utils.obfuscate(argv[1], asm, "main", 0, 0)
-            utils.compile_exec(asm, executable_elf)
-        else:
-            # Test Purpose
-            if source_file == './programSamples/New_Patricia/patricia_test.c':
-                path = "./programSamples/New_Patricia/"
-                exec_params = [executable_elf, "./programSamples/New_Patricia/small.udp"]
-                utils.compile_lib_patricia()
-                utils.compile_patricia(argv[1], executable_elf, path)
-                utils.compile_patricia_nosymbols(argv[1], asm, path)
-            else:
-                exec_params = [executable_elf]
-                utils.compile_exec(argv[1], executable_elf)
-                utils.compile_asm_nosymbols(argv[1], asm)
-    except SubProcessFailedException as e:
-        print("Compilation failed")
-        exit(-1)
+    compile_method(source_file, executable_elf, asm, folder)
+    exec_params = [os.path.join(folder, executable_elf)] + args
 
     plain_execution_dump = run_dump(exec_params)
-    tracer = run_trace(plain_execution_dump, symbols_elf, trace_no_symbols=True)
-    return tracer, run_score(tracer)
+    tracer = run_trace(plain_execution_dump, os.path.join(folder, executable_elf), trace_no_symbols=True)
+    return tracer
 
 
 def run_dump(exec_params, ignore_cache=False):
     print("# EXECUTE DUMP #")
     start_time = time.time()
-    plain_execution_dump = edg.edg(argv[1], exec_params, ignore_cache=ignore_cache)
+    plain_execution_dump = edg.edg(exec_params[0], exec_params, ignore_cache=ignore_cache)
     print("--- %s seconds ---" % (time.time() - start_time))
     return plain_execution_dump
 

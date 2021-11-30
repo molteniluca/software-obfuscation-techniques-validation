@@ -67,7 +67,7 @@ class WriteAdapter(AdapterInterface):
         if (instruction.opcode not in load_opcodes and instruction.opcode not in store_opcodes) \
                 and (instruction.r2 == register or instruction.r3 == register):
 
-            tracer.add_variable((variable[0], variable[1], True, 250), instruction.modified_register(), reference)
+            tracer.add_variable((variable[0], variable[1], True, tracer.tmp_variables_propagation), instruction.modified_register(), reference)
             if is_check_after:
                 tracer.check_after(instruction.modified_register(), (variable[0], variable[1], True, tracer.tmp_variables_propagation), reference)
 

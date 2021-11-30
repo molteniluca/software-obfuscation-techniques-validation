@@ -51,7 +51,14 @@ class Metrics:
 
     def metric_score(self):
         variables = {}
+        old_percentage = 0
+        i = 0
+
         for instruction in self.tracer.execution_dump.dump:
+            if old_percentage < int(i / len(self.tracer.execution_dump.dump) * 100):
+                old_percentage = int(i / len(self.tracer.execution_dump.dump) * 100)
+                print("Progress: " + str(int(i / len(self.tracer.execution_dump.dump) * 100)) + "%")
+            i += 1
             try:
                 registers_status = self.tracer.tracing_graph[instruction]
             except KeyError:
@@ -86,4 +93,5 @@ class Metrics:
     def get_dict(self):
         return {
             "metrics_heat": self.metrics_heat,
+            "dump_length": len(self.tracer.execution_dump.dump)
         }
