@@ -1,3 +1,4 @@
+import os
 from os import system
 
 from sotv.exceptions.SubProcessFailedException import SubProcessFailedException
@@ -30,6 +31,13 @@ def obfuscate(input_path: str, output_path: str, entry_point: str, rep_value: in
     if system("PYTHONPATH=\"" + obfuscator_path + "\" /usr/bin/python3.8 " + obfuscator_path + "/rvob/main.py "
               + input_path + " " + entry_point + " " + str(rep_value) + " " + str(heat_value) + " " +
               output_path) != 0:
+        raise SubProcessFailedException
+
+
+def obfuscate_bench(input_path: str, entry_point: str, rep_scrambling: int, rep_obfuscate: int, rep_garbage: int, heat_value: int):
+    if system("PYTHONPATH=\"" + obfuscator_path + "\" /usr/bin/python3.8 " + obfuscator_path + "/rvob/benchmark.py "
+              + os.path.abspath(input_path) + " " + entry_point + " " + str(rep_scrambling) + " " + str(rep_obfuscate) + " "
+              + str(rep_garbage) + " " + str(heat_value)) != 0:
         raise SubProcessFailedException
 
 
