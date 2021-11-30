@@ -48,7 +48,7 @@ def step_until_end_and_dump():
                 old_instr = frame.architecture().disassemble(old_instr_pc, old_instr_pc)[0]["asm"]
                 gdb.execute("ni")
         except gdb.error as e:
-            pass
+            return dump
         dump.append(dump_current())
         frame = gdb.selected_frame()
         old_instr_name = frame.name()
