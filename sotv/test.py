@@ -1,6 +1,8 @@
 import json
+import multiprocessing
 import os
 import sys
+from concurrent.futures import ProcessPoolExecutor
 
 from sotv import utils
 from sotv.EDG import edg
@@ -38,36 +40,39 @@ def test_bulk():
 
     program_list = [
         ("bubbleSort/bubblesort_old.c", compile_program, []),
-        ("dijkstra/dijkstra.c", compile_program, []),
-        ("fibonacci/fibonacci.c", compile_program, []),
-        ("New_CRC/crc_32_old.c", compile_program, []),
+        #("dijkstra/dijkstra.c", compile_program, []),
+        #("fibonacci/fibonacci.c", compile_program, []),
+        #("New_CRC/crc_32_old.c", compile_program, []),
         ("quickSort/quickSort.c", compile_program, []),
-        ("New_Susan/susan.c", compile_program_susan, ["input_small.pgm"]),
-        ("New_Patricia/patricia_test.c", compile_program_patricia, ["small.udp"])
+        #("New_Susan/susan.c", compile_program_susan, ["input_small.pgm"]),
+        #("New_Patricia/patricia_test.c", compile_program_patricia, ["small.udp"])
     ]
 
     test_list = [
         None,
+        ("main", 20, 20, 20, 20),
         ("main", 20, 20, 20, 20)
     ]
 
-    trace_dict = {}
+    m = multiprocessing.Manager()
+    lock = m.Lock()
+    with ProcessPoolExecutor(max_workers=12) as executor:
+        for program in program_list:
+            for test in test_list:
+                trace = exec_test(os.path.join(program_folder, program[0]),
+                                                           program[1],
+                                                           test,
+                                                           program[2]
+                                                           )
+                executor.submit(calc_and_save_score, trace, program[0], test, lock)
 
-    for program in program_list:
-        for test in test_list:
-            trace_dict[(program[0], test)] = exec_test(os.path.join(program_folder, program[0]),
-                                                       program[1],
-                                                       test,
-                                                       program[2]
-                                                       )
+    return
 
-    for key in trace_dict.keys():
-        name, test = key
-        calc_score = run_score(trace_dict[key][0])
 
-        save_score(calc_score, trace_dict[key][1], name, test)
-
-    return trace_dict
+def calc_and_save_score(trace, name, test, lock):
+    calc_score = run_score(trace[0])
+    with lock:
+        save_score(calc_score, trace[1], name, test)
 
 
 def execute_obfuscated_bench(source_file: str, obfuscator_params: (str, int, int), compile_method=compile_program, args=[]):

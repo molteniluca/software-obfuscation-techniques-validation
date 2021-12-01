@@ -3,7 +3,7 @@ from os import system
 
 from sotv.exceptions.SubProcessFailedException import SubProcessFailedException
 
-obfuscator_path = "./Obfuscator/RISCV-Obfuscator/"
+obfuscator_path = "/home/pii/pii/RISCV-Obfuscator/"
 
 
 def compile_asm(input_path: str, output_path: str):
