@@ -13,12 +13,12 @@ def test_bulk():
         ("fibonacci/fibonacci.c", compile_program, []),
         ("New_CRC/crc_32_old.c", compile_program, []),
         ("quickSort/quickSort.c", compile_program, []),
-        ("New_Susan/susan.c", compile_program_susan, ["input_small.pgm"]),
+        #("New_Susan/susan.c", compile_program_susan, ["input_small.pgm"]),
         ("New_Patricia/patricia_test.c", compile_program_patricia, ["small.udp"])
     ]
 
     test_list = [
-        None
+        ("main", (2, 2))
     ]
 
     trace_dict = {}

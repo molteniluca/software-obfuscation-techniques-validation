@@ -26,7 +26,7 @@ int main(int argc, char *argv[]) {
 		invfft = !strncmp(argv[3],"-i",2);
 	MAXSIZE=atoi(argv[2]);
 	MAXWAVES=atoi(argv[1]);
-		
+
  srand(1);
 
  RealIn=(float*)malloc(sizeof(float)*MAXSIZE);
@@ -37,16 +37,16 @@ int main(int argc, char *argv[]) {
  amp=(float*)malloc(sizeof(float)*MAXWAVES);
 
  /* Makes MAXWAVES waves of random amplitude and period */
-	for(i=0;i<MAXWAVES;i++) 
+	for(i=0;i<MAXWAVES;i++)
 	{
 		coeff[i] = rand()%1000;
 		amp[i] = rand()%1000;
 	}
- for(i=0;i<MAXSIZE;i++) 
+ for(i=0;i<MAXSIZE;i++)
  {
    /*   RealIn[i]=rand();*/
 	 RealIn[i]=0;
-	 for(j=0;j<MAXWAVES;j++) 
+	 for(j=0;j<MAXWAVES;j++)
 	 {
 		 /* randomly select sin or cos */
 		 if (rand()%2)
