@@ -47,3 +47,4 @@ def parse(input_path: str, output_path: str):
 
 if __name__ == "__main__":
     compile_exec("programSamples/test.c", "a.out")
+

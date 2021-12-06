@@ -86,15 +86,15 @@ def execute_obfuscated(source_file: str, obfuscator_params: (str, int, int), com
 def execute_plain(source_file: str, compile_method=compile_program, args=[]):
     sys.setrecursionlimit(10 ** 4)
 
-    executable_elf = "test.out"
     asm = "out_no_symbols.s"
     folder = os.path.dirname(source_file)
+    executable_elf = os.path.join(folder, "test.out")
 
-    compile_method(source_file, executable_elf, asm, folder)
-    exec_params = [os.path.join(folder, executable_elf)] + args
+    compile_method(source_file, executable_elf)
+    exec_params = [executable_elf] + args
 
     plain_execution_dump = run_dump(exec_params)
-    tracer = run_trace(plain_execution_dump, os.path.join(folder, executable_elf), trace_no_symbols=True)
+    tracer = run_trace(plain_execution_dump, executable_elf, trace_no_symbols=True)
     return tracer
 
 
