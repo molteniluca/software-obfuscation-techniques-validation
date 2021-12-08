@@ -98,7 +98,7 @@ def execute_plain(source_file: str, compile_method=compile_program, args=[]):
     return tracer
 
 
-def run_dump(exec_params, ignore_cache=False):
+def run_dump(exec_params, ignore_cache=True):
     print("# EXECUTE DUMP #")
     start_time = time.time()
     plain_execution_dump = edg.edg(exec_params[0], exec_params, ignore_cache=ignore_cache)

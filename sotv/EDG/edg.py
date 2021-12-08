@@ -1,6 +1,7 @@
 import json
 import os
 import subprocess
+import sys
 from typing import Dict
 
 from sotv import utils
@@ -14,9 +15,10 @@ dump_folder = "./EDG/dumps/"
 config_file = "EDG_conf.json"
 
 
-def edg(name: str, executable_params: list, ignore_cache: bool = False) -> ExecutionDump:
+def edg(name: str, executable_params: list, ignore_cache: bool = False, timeout=90000, spawn_terminal=False) -> ExecutionDump:
     """
     This functions performs an execution and dumps data
+    @param timeout: Timeout in seconds in case the obfuscator creates an infinite loop
     @param ignore_cache: Ignore already executed dump in dumps folder
     @param name: name of the executed program
     @param executable_params: Argv, a list containing the executable name and parameters
@@ -41,8 +43,15 @@ def edg(name: str, executable_params: list, ignore_cache: bool = False) -> Execu
         with open(tmp_folder + config_file, "w") as f:
             f.write(json.dumps(config))
         # Starts qemu session in background
-        subprocess.Popen(["qemu-riscv64-static", "-g", "1234"] + executable_params)
+
+        if spawn_terminal:
+            exec_array = ["terminator", "-x", "timeout", str(timeout), "qemu-riscv64-static", "-g", "1234"] + executable_params
+        else:
+            exec_array = ["timeout", str(timeout), "qemu-riscv64-static", "-g", "1234"] + executable_params
+
+        proc = subprocess.Popen(exec_array)
         subprocess.run(["gdb-multiarch", "-command=./EDG/edg_script.py", "-batch-silent"])
+        proc.kill()
 
     try:
         dump = json.loads(open(dump_file, "r").read())
@@ -60,8 +69,15 @@ def parse_instructions(dump) -> Dict[str, Instruction]:
     @param dump: The execution dump
     @return: The dictionary in which the keys are the instruction ref and the values are the parsed instructions
     """
+
+    unsupported = ["xf"]
+
     code = ""
     for line in dump[1:]:
+        for uns_instr in unsupported:
+            if uns_instr in line["executed_instruction"]:
+                line["executed_instruction"] = line["executed_instruction"].replace(uns_instr, "addi", 1)
+
         if "ret" in line["executed_instruction"]:
             code += "jr ra" + "\n"
         else:
