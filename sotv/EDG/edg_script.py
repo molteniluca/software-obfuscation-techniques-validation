@@ -40,7 +40,7 @@ def step_until_end_and_dump():
     while True:
         if end_dump:
             break
-        try:
+        '''try:
             while "None" in str(gdb.find_pc_line(old_instr_pc).symtab) and old_instr_pc != 0:
                 frame = gdb.selected_frame()
                 old_instr_name = frame.name()
@@ -48,7 +48,7 @@ def step_until_end_and_dump():
                 old_instr = frame.architecture().disassemble(old_instr_pc, old_instr_pc)[0]["asm"]
                 gdb.execute("ni")
         except gdb.error as e:
-            return dump
+            return dump '''
         dump.append(dump_current())
         frame = gdb.selected_frame()
         old_instr_name = frame.name()
