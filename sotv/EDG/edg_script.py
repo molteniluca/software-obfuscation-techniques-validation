@@ -47,8 +47,6 @@ def step_until_end_and_dump():
                 frame = gdb.selected_frame()
                 old_instr_name = frame.name()
                 old_instr_pc = frame.pc()
-                old_instr = frame.architecture().disassemble(old_instr_pc, old_instr_pc)[0]["asm"]
-                #print(old_instr_name,file=sys.stderr)
                 if old_instr_name == "exit":
                     return dump
                 gdb.execute("ni")
