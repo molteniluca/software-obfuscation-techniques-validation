@@ -15,7 +15,7 @@ dump_folder = "./EDG/dumps/"
 config_file = "EDG_conf.json"
 
 
-def edg(name: str, executable_params: list, ignore_cache: bool = False, timeout=90000, spawn_terminal=True) -> ExecutionDump:
+def edg(name: str, executable_params: list, ignore_cache: bool = False, timeout=90000, spawn_terminal=False) -> ExecutionDump:
     """
     This functions performs an execution and dumps data
     @param timeout: Timeout in seconds in case the obfuscator creates an infinite loop
@@ -52,8 +52,6 @@ def edg(name: str, executable_params: list, ignore_cache: bool = False, timeout=
             exec_array = ["timeout", str(timeout), "qemu-riscv64-static", "-g", "1234"] + executable_params
 
         proc = subprocess.Popen(exec_array)
-        print(" ".join(exec_array))
-        input()
         subprocess.run(["gdb-multiarch", "-command=./EDG/edg_script.py", "-batch-silent"])
         proc.kill()
 
