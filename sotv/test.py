@@ -35,14 +35,18 @@ def test_bulk():
         # ("New_AES/aesxam.c", compile_program, ["input_small.asc", "output_small.enc", "e",
         # "1234567890abcdeffedcba09876543211234567890abcdeffedcba0987654321"]),
         # ("matrixMul/matrixMul.c", compile_program, []),
-        ("bubbleSort/bubblesort_old.c", "main", (utils.compile_exec, compile_obf), []),
-        # ("New_Patricia/patricia_test.c", "bit", (compile_program_patricia, compile_obf_patricia), ["./programSamples/New_Patricia/small.udp"]),
+        # ("bubbleSort/bubblesort_old.c", "main", (utils.compile_exec, compile_obf), []),
+        ("New_Patricia/patricia_test.c", "bit", (compile_program_patricia, compile_obf_patricia), ["./programSamples/New_Patricia/small.udp"]),
         # ["./programSamples/New_Patricia/small.udp"])
     ]
 
     test_list = [
-        None,
-        #(1, 1, 1, 1)
+        (1, 1, 1, 1),
+        (1, 1, 1, 1),
+        (1, 1, 1, 1),
+        (1, 1, 1, 1),
+        (1, 1, 1, 1),
+        (1, 1, 1, 1)
     ]
 
     m = multiprocessing.Manager()

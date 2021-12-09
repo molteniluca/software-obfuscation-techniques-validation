@@ -57,6 +57,7 @@ def step_until_end_and_dump():
         if "ret" in old_instr and old_instr_name == "main":
             end_dump = True
         gdb.execute("stepi")  # Step to the next machine instruction
+
     return dump
 
 

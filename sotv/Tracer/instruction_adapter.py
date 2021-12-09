@@ -54,6 +54,13 @@ class ReadOnlyAdapter(AdapterInterface):
         return True
 
 
+class ExcludeAdapter(AdapterInterface):
+    pass
+
+    def adapt(self, register: str, variable: str, reference, tracer, is_check_after: bool):
+        return False
+
+
 class WriteAdapter(AdapterInterface):
     pass
 

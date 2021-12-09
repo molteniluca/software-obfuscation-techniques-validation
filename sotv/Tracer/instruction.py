@@ -1,4 +1,4 @@
-from sotv.Tracer.instruction_adapter import AdapterInterface, WriteAdapter, ReadOnlyAdapter
+from sotv.Tracer.instruction_adapter import AdapterInterface, WriteAdapter, ReadOnlyAdapter, ExcludeAdapter
 from sotv.Tracer.structures import opcodes, registers
 
 
@@ -27,13 +27,16 @@ class Instruction:
 
     def __init__(self, opcode: str, r1: str, r2: str, r3: str, immediate: int, ref: str, readable: str):
         self.opcode = opcode
-        try:
-            self.ins_adapter = opcodes[opcode][2]()
-        except IndexError:
-            if opcodes[opcode][1]:
-                self.ins_adapter = WriteAdapter()
-            else:
-                self.ins_adapter = ReadOnlyAdapter()
+        if opcode == "exclude":
+            self.ins_adapter = ExcludeAdapter()
+        else:
+            try:
+                self.ins_adapter = opcodes[opcode][2]()
+            except IndexError:
+                if opcodes[opcode][1]:
+                    self.ins_adapter = WriteAdapter()
+                else:
+                    self.ins_adapter = ReadOnlyAdapter()
         self.r1 = r1
         self.r2 = r2
         self.r3 = r3

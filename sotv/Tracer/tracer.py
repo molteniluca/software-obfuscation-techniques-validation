@@ -75,7 +75,7 @@ class Tracer:
             address = temp_ins.immediate + 0xb0000000
 
         # Computes the offset of the memory operation from fp
-        fp_offset = address - 0xb0000000
+        fp_offset = address - 0xa0000000
 
         # Check for occurrences for local variables
         if temp_ins.function_name in self.function_offsets.keys():
@@ -85,7 +85,7 @@ class Tracer:
 
         # Check for occurrences for global variables
         for variable_name in self.global_offsets.keys():
-            if address == self.global_offsets[variable_name]:
+            if address-0xb0000000 == self.global_offsets[variable_name]:
                 return variable_name, address
         # Default name is hex(address) in case of missing symbol, do not trace in case trace_no_symbols == False
         return None, address

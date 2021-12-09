@@ -37,7 +37,10 @@ class ExecutionDump:
         for line in dump:
             line_obj = DumpLine(line)
             if line_obj.executed_instruction is not None:
-                line_obj.executed_instruction = instructions_dict[line_obj.ref_executed_instruction]
+                if "+exclude" not in line_obj.ref_executed_instruction:
+                    line_obj.executed_instruction = instructions_dict[line_obj.ref_executed_instruction]
+                else:
+                    line_obj.executed_instruction = Instruction("exclude", None, None, None, None, line_obj.ref_executed_instruction, "Invalid")
 
             self.dump.append(line_obj)
 
