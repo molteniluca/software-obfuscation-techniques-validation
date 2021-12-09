@@ -70,12 +70,12 @@ class Tracer:
     def find_variable_name(self, temp_ins, dump_line):
         # Computes the absolute load address
         if temp_ins.r2 == "s0":
-            address = temp_ins.immediate + self.execution_dump.dump[dump_line].registers["fp"]
+            address = temp_ins.immediate + 0xa0000000
         else:
-            address = temp_ins.immediate + self.execution_dump.dump[dump_line].registers[temp_ins.r2]
+            address = temp_ins.immediate + 0xb0000000
 
         # Computes the offset of the memory operation from fp
-        fp_offset = address - self.execution_dump.dump[dump_line].registers["fp"]
+        fp_offset = address - 0xb0000000
 
         # Check for occurrences for local variables
         if temp_ins.function_name in self.function_offsets.keys():

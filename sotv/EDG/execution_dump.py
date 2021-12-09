@@ -14,10 +14,6 @@ class DumpLine:
     :ivar next_instruction the instruction to be executed
     :ivar ref_next_instruction the reference to the instruction to be executed
     """
-    registers: dict
-    SP_offsets: dict
-    FP_offsets: dict
-    var_values: dict
     executed_instruction: Instruction
     ref_executed_instruction: str
 
