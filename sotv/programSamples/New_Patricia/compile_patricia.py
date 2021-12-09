@@ -1,4 +1,6 @@
 import os.path
+import subprocess
+import sys
 from os import system
 
 from sotv.EDG import edg
@@ -32,6 +34,15 @@ def compile_program_patricia(source_file, executable_elf):
     os.rename(os.path.join(folder, "patricia"), os.path.join(folder, "test.out"))
 
 
+def test_integrity(plain, obf, param):
+    process1 = subprocess.Popen([plain, param], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    out1, err1 = process1.communicate()
+    process2 = subprocess.Popen([obf, param], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    out2, err2 = process2.communicate()
+
+    return out1 == out2 and err1 == err2
+
+
 def compile_obf_patricia(input_path, output_path, obfuscator_params, obf_exec_params, O=0):
     folder = os.path.dirname(input_path)
     obfuscated_asm = os.path.join(folder, "obf.s")
@@ -48,11 +59,15 @@ def compile_obf_patricia(input_path, output_path, obfuscator_params, obf_exec_pa
             obfuscate_bench(asm_json, *obfuscator_params)
             os.rename(asm_json+".s", obfuscated_asm)
             compile_obf(obfuscated_asm, output_path)
-            try:
-                obf_execution_dump = edg.edg(os.path.basename(input_path) + "_last_obf", obf_exec_params, ignore_cache=True)
-                obf_success = True
-            except DumpFailedException as e:
+            if not test_integrity(os.path.join(folder, "test.out"), output_path, os.path.join(folder, "small.udp")):
                 obf_success = False
+                print("\033[91mFailed output integrity\033[0m", file=sys.stderr)
+            else:
+                try:
+                    obf_execution_dump = edg.edg(os.path.basename(input_path) + "_last_obf", obf_exec_params, ignore_cache=True)
+                    obf_success = True
+                except DumpFailedException as e:
+                    obf_success = False
         except SubProcessFailedException as e:
             print("Failed obfuscation attempt:" + str(i))
             obf_success = False
