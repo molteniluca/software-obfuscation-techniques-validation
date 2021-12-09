@@ -64,7 +64,8 @@ def compile_obf_patricia(input_path, output_path, obfuscator_params, obf_exec_pa
                 print("\033[91mFailed output integrity\033[0m", file=sys.stderr)
             else:
                 try:
-                    obf_execution_dump = edg.edg(os.path.basename(input_path) + "_last_obf", obf_exec_params, ignore_cache=True)
+                    obf_execution_dump = edg.edg(os.path.basename(input_path) + "_last_obf",
+                                                 obf_exec_params, ignore_cache=True, exclude=["main"])
                     obf_success = True
                 except DumpFailedException as e:
                     obf_success = False

@@ -29,8 +29,9 @@ def edg(name: str, executable_params: list, ignore_cache: bool = False, timeout=
     """
 
     if exclude is None:
-        exclude = ["main"]
-        print("AAAAAAAAAAAAAAAAAAA")
+        exclude = []
+    else:
+        print("Methods blacklist:" + " ".join(exclude))
     dump_file = dump_folder + name.split("/")[-1] + "_dump.json"
 
     config = {

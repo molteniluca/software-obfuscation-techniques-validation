@@ -83,7 +83,7 @@ def execute_obfuscated(source_file: str, obfuscator_params: (str, int, int), com
     return tracer
 
 
-def execute_plain(source_file: str, compile_method=compile_program, args=[]):
+def execute_plain(source_file: str, compile_method=compile_program, args=[], exclude=None):
     sys.setrecursionlimit(10 ** 4)
 
     asm = "out_no_symbols.s"
@@ -93,15 +93,15 @@ def execute_plain(source_file: str, compile_method=compile_program, args=[]):
     compile_method(source_file, executable_elf)
     exec_params = [executable_elf] + args
 
-    plain_execution_dump = run_dump(exec_params)
+    plain_execution_dump = run_dump(exec_params, exclude=exclude)
     tracer = run_trace(plain_execution_dump, executable_elf, trace_no_symbols=True)
     return tracer
 
 
-def run_dump(exec_params, ignore_cache=True):
+def run_dump(exec_params, ignore_cache=True, exclude=None):
     print("# EXECUTE DUMP #")
     start_time = time.time()
-    plain_execution_dump = edg.edg(exec_params[0], exec_params, ignore_cache=ignore_cache)
+    plain_execution_dump = edg.edg(exec_params[0], exec_params, ignore_cache=ignore_cache, exclude=exclude)
     print("--- %s seconds ---" % (time.time() - start_time))
     return plain_execution_dump
 

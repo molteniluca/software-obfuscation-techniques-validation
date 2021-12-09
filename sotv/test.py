@@ -36,7 +36,7 @@ def test_bulk():
         # "1234567890abcdeffedcba09876543211234567890abcdeffedcba0987654321"]),
         # ("matrixMul/matrixMul.c", compile_program, []),
         # ("bubbleSort/bubblesort_old.c", "main", (utils.compile_exec, compile_obf), []),
-        ("New_Patricia/patricia_test.c", "bit", (compile_program_patricia, compile_obf_patricia), ["./programSamples/New_Patricia/small.udp"]),
+        ("New_Patricia/patricia_test.c", "bit", (compile_program_patricia, compile_obf_patricia), ["./programSamples/New_Patricia/small.udp"], ["main"]),
         # ["./programSamples/New_Patricia/small.udp"])
     ]
 
@@ -91,9 +91,14 @@ def calc_and_save_score(trace, name, test, lock):
 
 def exec_test(program, test):
     # (Path, entry point, compile_suite, args)
+    if len(program) == 4:
+        program = (*program, None)
     if test is None:
-        return execute_plain(os.path.join(program_folder, program[0]), compile_method=program[2][0], args=program[3]), \
-               None
+        return execute_plain(os.path.join(program_folder, program[0]),
+                             compile_method=program[2][0],
+                             args=program[3],
+                             exclude=program[4]
+                             ), None
     else:
         return execute_obfuscated_bench(os.path.join(program_folder, program[0]),
                                         (program[1], *test),
