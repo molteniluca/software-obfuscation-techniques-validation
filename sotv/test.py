@@ -22,33 +22,33 @@ def test_bulk():
 
     # (Path, entry point, compile_suite, args)
     program_list = [
-        # ("dijkstra/dijkstra.c", "main", (utils.compile_exec, compile_obf), []),
-        # "Factorial_Recursion/factorial_recursion.c", "main", (utils.compile_exec, compile_obf), []),
+        # ("bubbleSort/bubblesort_old.c", compile_program, []),
+        # ("dijkstra/dijkstra.c", compile_program, []),
+        # "Factorial_Recursion/factorial_recursion.c", compile_program, []),
         # ("fibonacci/fibonacci.c", "main", (utils.compile_exec, compile_obf), []),
-        # ("Intensive_Sort/intensive_sort.c", "main", (utils.compile_exec, compile_obf), []),
-        # ("New_CRC/crc_32_old.c", "main", (utils.compile_exec, compile_obf), []),
-        # ("quickSort/quickSort.c", "main", (utils.compile_exec, compile_obf), []),
+        # ("Intensive_Sort/intensive_sort.c", compile_program, []),
+        # ("New_CRC/crc_32_old.c", compile_program, []),
+        # ("quickSort/quickSort.c", compile_program, []),
         # ("New_Susan/susan.c", compile_program_susan, ["input_small.pgm"]),
+        # ("New_Patricia/patricia_test.c", compile_program_patricia, ["small.udp"]),
         # ("New_FFT/main.c", compile_program_fft, ["4", "8192", "-i"]),
         # ("New_AES/aesxam.c", compile_program, ["input_small.asc", "output_small.enc", "e",
         # "1234567890abcdeffedcba09876543211234567890abcdeffedcba0987654321"]),
-        # ("matrixMul/matrixMul.c", "main", (utils.compile_exec, compile_obf), []),
-        ("bubbleSort/bubblesort_old.c", "main", (utils.compile_exec, compile_obf), []),
-        # ("New_Patricia/patricia_test.c", "bit", (compile_program_patricia, compile_obf_patricia),
-         #["./programSamples/New_Patricia/small.udp"])
+        # ("matrixMul/matrixMul.c", compile_program, []),
+        # ("bubbleSort/bubblesort_old.c", "main", (utils.compile_exec, compile_obf), []),
+        ("New_Patricia/patricia_test.c", "bit", (compile_program_patricia, compile_obf_patricia), ["./programSamples/New_Patricia/small.udp"]),
+        # ["./programSamples/New_Patricia/small.udp"])
     ]
 
     test_list = [
         None,
-        (2, 2, 2, 2),
-        (2, 2, 2, 2),
-        (10, 10, 10, 10)
+        #(1, 1, 1, 1)
     ]
 
     m = multiprocessing.Manager()
     lock = m.Lock()
 
-    with ProcessPoolExecutor(max_workers=4) as executor:
+    with ProcessPoolExecutor(max_workers=12) as executor:
 
         for program in program_list:
             for test in test_list:
@@ -97,7 +97,7 @@ def exec_test(program, test):
                                         args=program[3])
 
 
-def compile_obf(input_path, output_path, obfuscator_params, obf_exec_params, O=0):
+def compile_obf(input_path, output_path, obfuscator_params, obf_exec_params, O=0, timeout=9000):
     folder = os.path.dirname(input_path)
     obfuscated_asm = os.path.join(folder, "obf.s")
     asm = os.path.join(folder, "out_no_symbols.s")
@@ -115,9 +115,10 @@ def compile_obf(input_path, output_path, obfuscator_params, obf_exec_params, O=0
             compile_exec(obfuscated_asm, output_path)
             try:
                 obf_execution_dump = edg.edg(os.path.basename(input_path) + "_last_obf", obf_exec_params,
-                                             ignore_cache=True)
+                                             ignore_cache=True, timeout=timeout)
                 obf_success = True
             except DumpFailedException as e:
+                print("Failed obfuscation attempt:" + str(i))
                 obf_success = False
         except SubProcessFailedException as e:
             print("Failed obfuscation attempt:" + str(i))
