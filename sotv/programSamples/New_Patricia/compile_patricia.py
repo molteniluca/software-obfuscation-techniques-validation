@@ -11,19 +11,19 @@ from sotv.utils import parse, obfuscate_bench, compile_exec
 
 def compile_patricia(input_path: str, output_path: str, path):
     if system(
-            "riscv64-linux-gnu-gcc -g --no-PIC -march=rv64i2p0_m2p0_a2p0_f2p0_d2p0_c2p0 -static -fno-stack-protector -o "+ path +"/patricia " + path + "/*.c") != 0:
+            "riscv64-linux-gnu-gcc -g --no-PIC -march=rv64i2p0_m2p0_a2p0_f2p0_d2p0_c2p0 -mno-strict-align -mpreferred-stack-boundary=4 -static -fno-stack-protector -o "+ path +"/patricia " + path + "/*.c") != 0:
         raise SubProcessFailedException
 
 
 def compile_patricia_nosymbols(input_path: str, output_path: str, path):
     if system(
-            "riscv64-linux-gnu-gcc --no-PIC -march=rv64i2p0_m2p0_a2p0_f2p0_d2p0_c2p0  -static -fno-stack-protector -S " + input_path + " -o " + output_path) != 0:
+            "riscv64-linux-gnu-gcc --no-PIC -march=rv64i2p0_m2p0_a2p0_f2p0_d2p0_c2p0 -mno-strict-align -mpreferred-stack-boundary=4  -static -fno-stack-protector -S " + input_path + " -o " + output_path) != 0:
         raise SubProcessFailedException
 
 
 def compile_obf(input_path: str, output_path: str):
     if system(
-            "riscv64-linux-gnu-gcc -g --no-PIC -march=rv64i2p0_m2p0_a2p0_f2p0_d2p0_c2p0 -static -fno-stack-protector -o " + output_path + " " + os.path.dirname(input_path) + "/patricia_test.c "+ os.path.dirname(input_path) + "/obf.s") != 0:
+            "riscv64-linux-gnu-gcc -g --no-PIC -march=rv64i2p0_m2p0_a2p0_f2p0_d2p0_c2p0 -mno-strict-align -mpreferred-stack-boundary=4 -static -fno-stack-protector -o " + output_path + " " + os.path.dirname(input_path) + "/patricia_test.c "+ os.path.dirname(input_path) + "/obf.s") != 0:
         raise SubProcessFailedException
 
 

@@ -42,11 +42,6 @@ def test_bulk():
 
     test_list = [
         (1, 1, 1, 1),
-        (1, 1, 1, 1),
-        (1, 1, 1, 1),
-        (1, 1, 1, 1),
-        (1, 1, 1, 1),
-        (1, 1, 1, 1)
     ]
 
     m = multiprocessing.Manager()
