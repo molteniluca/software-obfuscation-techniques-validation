@@ -21,7 +21,28 @@ def main():
         else:
             if test["calc"]["dump_length"] >= min_length:
                 result[key].append(funct(test))
+    temp_dict = {}
+    for key in result.keys():
+        if key != "plain":
+            temp_dict[key + "_average"] = average(result[key])
+    result.update(**temp_dict)
     print(result)
+
+
+def average(list_val):
+    temp_elem = None
+    for elem in list_val:
+        for var in test_variables:
+            if temp_elem is None:
+                temp_elem = dict(elem)
+            else:
+                for key in temp_elem[var].keys():
+                    temp_elem[var][key] += elem[var][key]
+    if temp_elem is not None:
+        for val in temp_elem.keys():
+            for key in temp_elem[val].keys():
+                temp_elem[val][key] = temp_elem[val][key]/len(list_val)
+    return temp_elem
 
 
 def funct(test):
@@ -46,15 +67,15 @@ def funct(test):
                 ratios[register] = {variable: (metrics_heat[register][variable] / calc["dump_length"])}
             temp = "tot % of the variable in " + register
             if results is None:
-                results = {variable: {temp: format(ratios[register][variable] * 100, '.2f')}}
+                results = {variable: {temp: ratios[register][variable] * 100}}
             else:
-                results[variable][temp] = format(ratios[register][variable] * 100, '.2f')
+                results[variable][temp] = ratios[register][variable] * 100
         for register in test_registers:
             for el in ratios[register].values():
                 i += 1
                 tot += el
         temp = "tot % of the variable in register subset:"
-        results[variable][temp] = format((tot / i * 100), '.2f')
+        results[variable][temp] = (tot / i * 100)
     return results
 
 
