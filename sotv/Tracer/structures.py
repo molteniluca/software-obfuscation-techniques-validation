@@ -100,6 +100,8 @@ registers = ["ra", "sp", "gp", "tp", "t0", "t1", "t2", "t3", "t4", "t5", "t6", "
 
 not_trash_registers = ["gp", "tp", "zero"]
 
+ignored_registers = ["s0", "ra"]
+
 # Dictionary of immediate formats with associated immediate field size
 imm_sizes: Mapping[str, int] = {
     "i": 12,

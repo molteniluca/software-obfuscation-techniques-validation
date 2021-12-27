@@ -1,6 +1,7 @@
 """"
 This interface handle the tracing after a specific type of instruction
 """
+from sotv.Tracer.defines import load_opcodes, store_opcodes
 
 
 class AdapterInterface:
@@ -36,14 +37,12 @@ class MoveAdapter(AdapterInterface):
         else:
             if is_check_after:
                 tracer.add_variable(variable, register, reference)
-                # tracer.check_after(register, variable, reference)
                 if instruction.r2 == register:
                     tracer.add_variable(variable, instruction.modified_register(), reference)
                     tracer.check_after(instruction.modified_register(), variable, reference)
                 return True
             else:
                 tracer.add_variable(variable, register, reference)
-                # tracer.check_before(register, variable, reference)
                 return True
 
 
@@ -52,28 +51,36 @@ class ReadOnlyAdapter(AdapterInterface):
 
     def adapt(self, register: str, variable: str, reference, tracer, is_check_after: bool):
         tracer.add_variable(variable, register, reference)
-        if is_check_after:
-            return True
-            # tracer.check_after(register, variable, reference)
-        else:
-            return True
-            # tracer.check_before(register, variable, reference)
+        return True
 
 
 class WriteAdapter(AdapterInterface):
     pass
 
-    def adapt(self, register: str, variable: str, reference, tracer, is_check_after: bool):
+    def adapt(self, register: str, variable, reference, tracer, is_check_after: bool):
         instruction = tracer.execution_dump.dump[reference].executed_instruction
+
+        if variable[2] and (instruction.opcode in load_opcodes or instruction.opcode in store_opcodes) \
+                and instruction.modified_register() == register:
+            return False
+
+        if (instruction.opcode not in load_opcodes and instruction.opcode not in store_opcodes) \
+                and (instruction.r2 == register or instruction.r3 == register):
+
+            tracer.add_variable((variable[0], variable[1], True, tracer.tmp_variables_propagation), instruction.modified_register(), reference)
+            if is_check_after:
+                tracer.check_after(instruction.modified_register(), (variable[0], variable[1], True, tracer.tmp_variables_propagation), reference)
+
+        if not is_check_after and (instruction.opcode not in load_opcodes and instruction.opcode not in store_opcodes):
+            if instruction.modified_register() == register:
+                if instruction.r2 != "unused":
+                    tracer.check_before(instruction.r2, (variable[0], variable[1], True, tracer.tmp_variables_propagation), reference)
+                if instruction.r3 != "unused":
+                    tracer.check_before(instruction.r3, (variable[0], variable[1], True, tracer.tmp_variables_propagation), reference)
+
         if instruction.modified_register() != register:
             tracer.add_variable(variable, register, reference)
-
-            if is_check_after:
-                return True
-                # tracer.check_after(register, variable, reference)
-            else:
-                return True
-                # tracer.check_before(register, variable, reference)
+            return True
         else:
             if not is_check_after:
                 tracer.add_variable(variable, register, reference)

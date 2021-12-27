@@ -1,3 +1,5 @@
+import sys
+
 import gdb
 import json
 import os
@@ -45,10 +47,11 @@ def step_until_end_and_dump():
                 frame = gdb.selected_frame()
                 old_instr_name = frame.name()
                 old_instr_pc = frame.pc()
-                old_instr = frame.architecture().disassemble(old_instr_pc, old_instr_pc)[0]["asm"]
+                if old_instr_name == "exit":
+                    return dump
                 gdb.execute("ni")
         except gdb.error as e:
-            pass
+            raise e
         dump.append(dump_current())
         frame = gdb.selected_frame()
         old_instr_name = frame.name()

@@ -29,7 +29,7 @@ typedef  struct {int x,y,info, dx, dy, I;} CORNER_LIST[MAX_CORNERS];
 /* }}} */
 /* {{{ usage() */
 
-usage()
+int usage()
 {
   printf("Usage: susan <in.pgm> <out.pgm> [options]\n\n");
 
@@ -199,7 +199,7 @@ float temp;
     temp=temp*temp;
     if (form==6)
       temp=temp*temp*temp;
-    temp=100.0*exp(-temp);
+    temp=100.0*exp((double)(-temp));
     *(*bp+k)= (uchar)temp;
   }
 }
@@ -446,7 +446,7 @@ TOTAL_TYPE total;
   for(i=-mask_size; i<=mask_size; i++)
     for(j=-mask_size; j<=mask_size; j++)
     {
-      x = (int) (100.0 * exp( ((float)((i*i)+(j*j))) / temp ));
+      x = (int) (100.0 * exp( ((double)((i*i)+(j*j))) / temp ));
       *dpt++ = (unsigned char)x;
     }
 
