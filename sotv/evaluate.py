@@ -71,11 +71,9 @@ def funct(test):
             else:
                 results[variable][temp] = ratios[register][variable] * 100
         for register in test_registers:
-            for el in ratios[register].values():
-                i += 1
-                tot += el
+            tot += sum(ratios[register].values())
         temp = "tot % of the variable in register subset:"
-        results[variable][temp] = (tot / i * 100)
+        results[variable][temp] = (tot * 100)
     return results
 
 
