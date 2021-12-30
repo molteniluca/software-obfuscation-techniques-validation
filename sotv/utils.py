@@ -41,7 +41,7 @@ def obfuscate_bench(input_path: str, entry_point: str, rep_scrambling: int, rep_
               + str(rep_garbage) + " " + str(heat_value)) != 0:
         raise SubProcessFailedException
     obfuscate(input_path, os.path.join(os.path.dirname(input_path), "out_no_symbols.json.s"), entry_point, rep_scrambling, rep_obfuscate)'''
-    obfuscate_bench_2(input_path, input_path+".s", entry_point, rep_scrambling, rep_obfuscate, 1, rep_garbage, heat_value)
+    obfuscate_bench_2(input_path, input_path+".s", entry_point, 0, rep_obfuscate, 1, rep_garbage, heat_value)
 
 
 def obfuscate_bench_2(input_path: str, output_path:str, entry_point: str, rep_scrambling: int, rep_obfuscate: int, size_block:int, rep_garbage: int, heat_value: int):
