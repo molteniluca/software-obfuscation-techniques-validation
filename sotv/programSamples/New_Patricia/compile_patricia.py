@@ -1,4 +1,6 @@
 import os.path
+import subprocess
+import sys
 from os import system
 
 from sotv.EDG import edg
@@ -9,13 +11,13 @@ from sotv.utils import parse, obfuscate_bench, compile_exec
 
 def compile_patricia(input_path: str, output_path: str, path):
     if system(
-            "riscv64-linux-gnu-gcc -g --no-PIC -march=rv64i2p0_m2p0_a2p0_f2p0_d2p0_c2p0 -static -mno-strict-align -mpreferred-stack-boundary=4 -fno-stack-protector -o "+ path +"/patricia " + path + "/*.c") != 0:
+            "riscv64-linux-gnu-gcc -g --no-PIC -march=rv64i2p0_m2p0_a2p0_f2p0_d2p0_c2p0 -mno-strict-align -mpreferred-stack-boundary=4 -static -fno-stack-protector -o "+ path +"/patricia " + path + "/*.c") != 0:
         raise SubProcessFailedException
 
 
 def compile_patricia_nosymbols(input_path: str, output_path: str, path):
     if system(
-            "riscv64-linux-gnu-gcc --no-PIC -march=rv64i2p0_m2p0_a2p0_f2p0_d2p0_c2p0  -mno-strict-align -mpreferred-stack-boundary=4 -static -fno-stack-protector -S " + input_path + " -o " + output_path) != 0:
+            "riscv64-linux-gnu-gcc --no-PIC -march=rv64i2p0_m2p0_a2p0_f2p0_d2p0_c2p0 -mno-strict-align -mpreferred-stack-boundary=4  -static -fno-stack-protector -S " + input_path + " -o " + output_path) != 0:
         raise SubProcessFailedException
 
 
@@ -30,6 +32,15 @@ def compile_program_patricia(source_file, executable_elf):
 
     compile_patricia(source_file, folder + executable_elf, folder)
     os.rename(os.path.join(folder, "patricia"), os.path.join(folder, "test.out"))
+
+
+def test_integrity(plain, obf, param):
+    process1 = subprocess.Popen([plain, param], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    out1, err1 = process1.communicate()
+    process2 = subprocess.Popen([obf, param], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    out2, err2 = process2.communicate()
+
+    return out1 == out2 and err1 == err2
 
 
 def compile_obf_patricia(input_path, output_path, obfuscator_params, obf_exec_params, O=0):
@@ -48,11 +59,16 @@ def compile_obf_patricia(input_path, output_path, obfuscator_params, obf_exec_pa
             obfuscate_bench(asm_json, *obfuscator_params)
             os.rename(asm_json+".s", obfuscated_asm)
             compile_obf(obfuscated_asm, output_path)
-            try:
-                obf_execution_dump = edg.edg(os.path.basename(input_path) + "_last_obf", obf_exec_params, ignore_cache=True)
-                obf_success = True
-            except DumpFailedException as e:
+            if not test_integrity(os.path.join(folder, "test.out"), output_path, os.path.join(folder, "small.udp")):
                 obf_success = False
+                print("\033[91mFailed output integrity\033[0m", file=sys.stderr)
+            else:
+                try:
+                    obf_execution_dump = edg.edg(os.path.basename(input_path) + "_last_obf",
+                                                 obf_exec_params, ignore_cache=True, exclude=["main"])
+                    obf_success = True
+                except DumpFailedException as e:
+                    obf_success = False
         except SubProcessFailedException as e:
             print("Failed obfuscation attempt:" + str(i))
             obf_success = False

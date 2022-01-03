@@ -14,7 +14,7 @@ def dump_current():
     global old_instr_pc
     global old_instr_name
 
-    dump_step = {"registers": {}, "SP_offsets": {}, "FP_offsets": {}, "var_values": {}}
+    dump_step = {}
 
     # Gets next executing instruction
 
@@ -25,10 +25,6 @@ def dump_current():
     else:
         dump_step["executed_instruction"] = None
         dump_step["ref_executed_instruction"] = None
-
-    # Dumps all registers
-    for reg in regs:
-        dump_step["registers"][reg] = int(gdb.parse_and_eval("$" + reg))
 
     return dump_step
 
@@ -61,6 +57,7 @@ def step_until_end_and_dump():
         if "ret" in old_instr and old_instr_name == "main":
             end_dump = True
         gdb.execute("stepi")  # Step to the next machine instruction
+
     return dump
 
 

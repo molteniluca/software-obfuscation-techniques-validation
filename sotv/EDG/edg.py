@@ -15,9 +15,12 @@ dump_folder = "./EDG/dumps/"
 config_file = "EDG_conf.json"
 
 
-def edg(name: str, executable_params: list, ignore_cache: bool = False, timeout=90000, spawn_terminal=False) -> ExecutionDump:
+def edg(name: str, executable_params: list, ignore_cache: bool = False, timeout=900000,
+        spawn_terminal=False, exclude=None) -> ExecutionDump:
     """
     This functions performs an execution and dumps data
+    @param exclude: Methods to exclude from the trace
+    @param spawn_terminal: Flag that if set makes the program run in a detached window
     @param timeout: Timeout in seconds in case the obfuscator creates an infinite loop
     @param ignore_cache: Ignore already executed dump in dumps folder
     @param name: name of the executed program
@@ -25,6 +28,10 @@ def edg(name: str, executable_params: list, ignore_cache: bool = False, timeout=
     @return: An execution dump and a parsed instruction dictionary
     """
 
+    if exclude is None:
+        exclude = []
+    else:
+        print("Methods blacklist:" + " ".join(exclude))
     dump_file = dump_folder + name.split("/")[-1] + "_dump.json"
 
     config = {
@@ -44,7 +51,7 @@ def edg(name: str, executable_params: list, ignore_cache: bool = False, timeout=
             f.write(json.dumps(config))
         # Starts qemu session in background
 
-        unix_sock_params = ["-g", "1234", "-singlestep"]
+        unix_sock_params = ["-g", "1234"]
 
         if spawn_terminal:
             exec_array = ["terminator", "-x", "timeout", str(timeout), "qemu-riscv64-static"] + unix_sock_params + executable_params
@@ -60,6 +67,21 @@ def edg(name: str, executable_params: list, ignore_cache: bool = False, timeout=
     except FileNotFoundError as e:
         raise DumpFailedException
 
+    new_dump = []
+    continuing = False
+    for line in dump[1:]:
+        cont = False
+        for method in exclude:
+            if method in line["ref_executed_instruction"]:
+                cont |= True
+                if not continuing:
+                    new_dump.append({"ref_executed_instruction": method+"+exclude", "executed_instruction": line["executed_instruction"]})
+                    continuing = True
+        if cont:
+            continue
+        new_dump.append(line)
+
+    dump = new_dump
     instructions = parse_instructions(dump)
 
     return ExecutionDump(instructions, dump)
@@ -72,13 +94,9 @@ def parse_instructions(dump) -> Dict[str, Instruction]:
     @return: The dictionary in which the keys are the instruction ref and the values are the parsed instructions
     """
 
-    unsupported = ["xf"]
 
     code = ""
-    for line in dump[1:]:
-        for uns_instr in unsupported:
-            if uns_instr in line["executed_instruction"]:
-                line["executed_instruction"] = line["executed_instruction"].replace(uns_instr, "addi", 1)
+    for line in dump:
 
         if "ret" in line["executed_instruction"]:
             code += "jr ra" + "\n"
@@ -95,14 +113,14 @@ def parse_instructions(dump) -> Dict[str, Instruction]:
     parsed = json.loads(parsed)
 
     instructions = {}
-    for i in range(len(dump[1:])):
-        instructions[dump[i + 1]["ref_executed_instruction"]] = Instruction(parsed[i]["opcode"],
+    for i in range(len(dump)):
+        instructions[dump[i]["ref_executed_instruction"]] = Instruction(parsed[i]["opcode"],
                                                                             parsed[i]["r1"],
                                                                             parsed[i]["r2"],
                                                                             parsed[i]["r3"],
                                                                             parsed[i]["immediate"],
-                                                                            dump[i + 1]["ref_executed_instruction"],
-                                                                            dump[i + 1]["executed_instruction"])
+                                                                            dump[i]["ref_executed_instruction"],
+                                                                            dump[i]["executed_instruction"])
     return instructions
 
 

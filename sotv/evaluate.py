@@ -1,11 +1,11 @@
 import json
 
 test_registers = ["a4", "a5"]
-test_variables = ["n"]
+test_variables = ["n", "0xafffffc8", "d"]
 
 
 def main():
-    data = json.loads(open("scoreCalculator/results_bulk/bubblesort.json", "r").read())
+    data = json.loads(open("scoreCalculator/results_bulk/bubblesort_old.c.json", "r").read())
     result = None
     min_length = data["plain"][0]["calc"]["dump_length"]
     for key, test in data.items():
@@ -26,7 +26,7 @@ def main():
         if key != "plain":
             temp_dict[key + "_average"] = average(result[key])
     result.update(**temp_dict)
-    print(result)
+    print(json.dumps(result, indent=4))
 
 
 def average(list_val):
@@ -70,6 +70,7 @@ def funct(test):
                 results = {variable: {temp: ratios[register][variable] * 100}}
             else:
                 results[variable][temp] = ratios[register][variable] * 100
+
         for register in test_registers:
             tot += sum(ratios[register].values())
         temp = "tot % of the variable in register subset:"
