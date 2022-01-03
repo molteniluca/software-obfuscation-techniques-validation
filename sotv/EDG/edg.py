@@ -16,7 +16,7 @@ config_file = "EDG_conf.json"
 
 
 def edg(name: str, executable_params: list, ignore_cache: bool = False, timeout=900000,
-        spawn_terminal=True, exclude=None) -> ExecutionDump:
+        spawn_terminal=False, exclude=None) -> ExecutionDump:
     """
     This functions performs an execution and dumps data
     @param exclude: Methods to exclude from the trace

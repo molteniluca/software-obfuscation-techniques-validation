@@ -35,12 +35,13 @@ def test_bulk():
         # ("New_AES/aesxam.c", compile_program, ["input_small.asc", "output_small.enc", "e",
         # "1234567890abcdeffedcba09876543211234567890abcdeffedcba0987654321"]),
         # ("matrixMul/matrixMul.c", compile_program, []),
-        # ("bubbleSort/bubblesort_old.c", "main", (utils.compile_exec, compile_obf), []),
-        ("New_Patricia/patricia_test.c", "bit", (compile_program_patricia, compile_obf_patricia), ["./programSamples/New_Patricia/small.udp"], ["main"]),
+        ("bubbleSort/bubblesort_old.c", "main", (utils.compile_exec, compile_obf), []),
+        # ("New_Patricia/patricia_test.c", "bit", (compile_program_patricia, compile_obf_patricia), ["./programSamples/New_Patricia/small.udp"], ["main"]),
         # ["./programSamples/New_Patricia/small.udp"])
     ]
 
     test_list = [
+        None,
         (1, 1, 1, 1),
     ]
 
@@ -67,9 +68,18 @@ def save_score(score_calc, score, name, obf):
         result = {}
 
     if obf is not None:
+        plain_score = {"mean_heat": score["Mean heat before"], "executed_instructions": score["Executed instructions before"]}
+        obf_score = {"mean_heat": score["Mean heat after"], "executed_instructions": score["Executed instructions after"],
+                     "mean_fragmentation": score["Mean fragmentation"],
+                     "number_of_original_ValueBlock": score["Number of original ValueBlock"],
+                     "list_of_fragmented_ValueBlock": score["List of fragmented ValueBlock"],
+                     }
         if str(obf) not in result.keys():
             result[str(obf)] = []
-        result[str(obf)].append({"calc": score_calc.get_dict(), "DETON": score})
+        result[str(obf)].append({"calc": score_calc.get_dict(), "DETON": obf_score})
+        if "plain" not in result.keys():
+            result["plain"] = [{}]
+        result["plain"][0]["DETON"] = plain_score
     else:
         result["plain"] = [{}]
         result["plain"][0]["calc"] = score_calc.get_dict()
