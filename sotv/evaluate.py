@@ -1,13 +1,26 @@
 import json
 
-test_registers = ["a4", "a5"]
-test_variables = ["n", "0xafffffc8", "d"]
+test_registers = ["ra", "sp", "gp", "tp", "t0", "t1", "t2", "t3", "t4", "t5", "t6", "s0", "s1", "s2", "s3", "s4",
+             "s5", "s6", "s7", "s8", "s9", "s10", "s11", "a0", "a1", "a2", "a3", "a4", "a5", "a6", "a7"]
+test_variables = ["n", "d"]
 
 
 def main():
-    data = json.loads(open("scoreCalculator/results_bulk/bubblesort_old.c.json", "r").read())
+    data = json.loads(open("scoreCalculator/results_bulk/bubblesort_old.json", "r").read())
     result = None
     min_length = data["plain"][0]["calc"]["dump_length"]
+    deton_heat = {"plain": data["(1, 1, 1, 1)"][0]["DETON"]["Mean heat before"]}
+    average_heat = None
+    for lev_obf in data.keys():
+        for elem in data[lev_obf]:
+            if lev_obf != "plain":
+                if average_heat is None:
+                    average_heat = elem["DETON"]["Mean heat after"]
+                else:
+                    average_heat = [x + y for x, y in zip(average_heat, elem["DETON"]["Mean heat after"])]
+        if lev_obf != "plain":
+            deton_heat.update(**{lev_obf: [x/len(data[lev_obf]) for x in average_heat]})
+        average_heat = None
     for key, test in data.items():
         print("Evaluating: " + key)
         if result is None:
@@ -36,8 +49,9 @@ def average(list_val):
             if temp_elem is None:
                 temp_elem = dict(elem)
             else:
-                for key in temp_elem[var].keys():
-                    temp_elem[var][key] += elem[var][key]
+                if len(list_val) != 1:
+                    for key in temp_elem[var].keys():
+                        temp_elem[var][key] += elem[var][key]
     if temp_elem is not None:
         for val in temp_elem.keys():
             for key in temp_elem[val].keys():
@@ -54,7 +68,7 @@ def funct(test):
     metrics_heat = calc["metrics_heat"]
 
     ratios = {}
-
+    value = None
     results = None
 
     for variable in test_variables:
@@ -62,17 +76,27 @@ def funct(test):
         i = 0
         for register in test_registers:
             try:
-                ratios[register][variable] += (metrics_heat[register][variable] / calc["dump_length"])
+                try:
+                    value = metrics_heat[register][variable] / calc["dump_length"]
+                except KeyError:
+                    value = 0
+                ratios[register][variable] += value
             except KeyError:
-                ratios[register] = {variable: (metrics_heat[register][variable] / calc["dump_length"])}
+                try:
+                    ratios[register].update(**{variable: value})
+                except KeyError:
+                    ratios[register] = {variable: value}
             temp = "tot % of the variable in " + register
             if results is None:
                 results = {variable: {temp: ratios[register][variable] * 100}}
             else:
-                results[variable][temp] = ratios[register][variable] * 100
+                try:
+                    results[variable][temp] = ratios[register][variable] * 100
+                except KeyError:
+                    results.update(**{variable: {temp: (ratios[register][variable] * 100)}})
 
-        for register in test_registers:
-            tot += sum(ratios[register].values())
+            if variable in ratios[register].keys():
+                tot += ratios[register][variable]
         temp = "tot % of the variable in register subset:"
         results[variable][temp] = (tot * 100)
     return results
