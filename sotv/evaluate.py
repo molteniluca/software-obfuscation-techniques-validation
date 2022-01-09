@@ -2,22 +2,22 @@ import json
 
 test_registers = ["ra", "sp", "gp", "tp", "t0", "t1", "t2", "t3", "t4", "t5", "t6", "s0", "s1", "s2", "s3", "s4",
              "s5", "s6", "s7", "s8", "s9", "s10", "s11", "a0", "a1", "a2", "a3", "a4", "a5", "a6", "a7"]
-test_variables = ["n", "d"]
+test_variables = ["crctable"]
 
 
 def main():
-    data = json.loads(open("scoreCalculator/results_bulk/bubblesort_old.json", "r").read())
+    data = json.loads(open("scoreCalculator/results_bulk/crc_32_old.c.json", "r").read())
     result = None
     min_length = data["plain"][0]["calc"]["dump_length"]
-    deton_heat = {"plain": data["(1, 1, 1, 1)"][0]["DETON"]["Mean heat before"]}
+    deton_heat = {"plain": data["plain"][0]["DETON"]["mean_heat"]}
     average_heat = None
     for lev_obf in data.keys():
         for elem in data[lev_obf]:
             if lev_obf != "plain":
                 if average_heat is None:
-                    average_heat = elem["DETON"]["Mean heat after"]
+                    average_heat = elem["DETON"]["mean_heat"]
                 else:
-                    average_heat = [x + y for x, y in zip(average_heat, elem["DETON"]["Mean heat after"])]
+                    average_heat = [x + y for x, y in zip(average_heat, elem["DETON"]["mean_heat"])]
         if lev_obf != "plain":
             deton_heat.update(**{lev_obf: [x/len(data[lev_obf]) for x in average_heat]})
         average_heat = None
