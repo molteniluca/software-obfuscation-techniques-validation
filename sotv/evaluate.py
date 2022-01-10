@@ -1,8 +1,9 @@
 import json
+import matplotlib.pyplot as plt
 
 test_registers = ["ra", "sp", "gp", "tp", "t0", "t1", "t2", "t3", "t4", "t5", "t6", "s0", "s1", "s2", "s3", "s4",
              "s5", "s6", "s7", "s8", "s9", "s10", "s11", "a0", "a1", "a2", "a3", "a4", "a5", "a6", "a7"]
-test_variables = ["crctable"]
+test_variables = ["crctable", "datablkptr", "0x70df8", "crcaccum", "crc32"]
 
 
 def main():
@@ -40,6 +41,18 @@ def main():
             temp_dict[key + "_average"] = average(result[key])
     result.update(**temp_dict)
     print(json.dumps(result, indent=4))
+    print_graph(result)
+
+def print_graph(result):
+    dict_2={}
+    dict_2["plain"]=result["plain"][0]['crc32']["tot % of the variable in register subset:"]
+    for key in result.keys():
+        if "average" in key:
+            dict_2[key[1:-len(")_average")]] = result[key]['crctable']["tot % of the variable in register subset:"]
+
+
+    plt.bar(list(dict_2.keys()), dict_2.values())
+    plt.savefig("myfig.png")
 
 
 def average(list_val):
