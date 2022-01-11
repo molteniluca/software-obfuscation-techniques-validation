@@ -1,6 +1,7 @@
 import json
 import multiprocessing
 import os
+import subprocess
 import sys
 from concurrent.futures import ProcessPoolExecutor
 
@@ -37,8 +38,9 @@ def test_bulk():
         # ("New_AES/aesxam.c", compile_program, ["input_small.asc", "output_small.enc", "e",
         # "1234567890abcdeffedcba09876543211234567890abcdeffedcba0987654321"]),
         # ("matrixMul/matrixMul.c", compile_program, []),
-        ("sha/sha.c", "main", (compile_program_sha, compile_obf_sha), [], [])
+        # ("sha/sha.c", "main", (compile_program_sha, compile_obf_sha), [], [])
         # ("bubbleSort/bubblesort_old.c", "main", (utils.compile_exec, compile_obf), []),
+        ("sha256/sha256.c", "main", (utils.compile_exec, compile_obf), []),
         # ("New_Patricia/patricia_test.c", "bit", (compile_program_patricia, compile_obf_patricia), ["./programSamples/New_Patricia/small.udp"], ["main"]),
         # ["./programSamples/New_Patricia/small.udp"])
     ]
@@ -47,17 +49,17 @@ def test_bulk():
 
     test_list = [None]
 
-    for i in range(100):
+    for i in range(20):
         test_list.append((0,0,1,1))
-    for i in range(100):
+    for i in range(20):
         test_list.append((0,0,2,1))
-    for i in range(100):
+    for i in range(20):
         test_list.append((0,0,3,1))
-    for i in range(100):
+    for i in range(20):
         test_list.append((0,0,4,1))
-    for i in range(100):
+    for i in range(20):
         test_list.append((0,0,5,1))
-    for i in range(100):
+    for i in range(20):
         test_list.append((0,0,6,1))
 
     m = multiprocessing.Manager()
@@ -126,6 +128,15 @@ def exec_test(program, test):
                                         args=program[3])
 
 
+def test_integrity(plain, obf):
+    process1 = subprocess.Popen([plain], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    out1, err1 = process1.communicate()
+    process2 = subprocess.Popen([obf], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    out2, err2 = process2.communicate()
+
+    return out1 == out2 and err1 == err2
+
+
 def compile_obf(input_path, output_path, obfuscator_params, obf_exec_params, O=0, timeout=9000):
     folder = os.path.dirname(input_path)
     obfuscated_asm = os.path.join(folder, "obf.s")
@@ -144,13 +155,17 @@ def compile_obf(input_path, output_path, obfuscator_params, obf_exec_params, O=0
             obfuscate_bench(asm_json, *obfuscator_params)
             os.rename(asm_json + ".s", obfuscated_asm)
             compile_exec(obfuscated_asm, output_path)
-            try:
-                obf_execution_dump = edg.edg(os.path.basename(input_path) + "_last_obf", obf_exec_params,
-                                             ignore_cache=True, timeout=timeout)
-                obf_success = True
-            except DumpFailedException as e:
-                print("Failed obfuscation attempt:" + str(i))
+            if not test_integrity(os.path.join(folder, "test.out"), output_path):
                 obf_success = False
+                print("\033[91mFailed output integrity\033[0m", file=sys.stderr)
+            else:
+                try:
+                    obf_execution_dump = edg.edg(os.path.basename(input_path) + "_last_obf", obf_exec_params,
+                                                 ignore_cache=True, timeout=timeout)
+                    obf_success = True
+                except DumpFailedException as e:
+                    print("Failed obfuscation attempt:" + str(i))
+                    obf_success = False
         except SubProcessFailedException as e:
             print("Failed obfuscation attempt:" + str(i))
             obf_success = False
