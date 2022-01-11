@@ -14,7 +14,7 @@ def dump_current():
     global old_instr_pc
     global old_instr_name
 
-    dump_step = {}
+    dump_step = {"registers": {}}
 
     # Gets next executing instruction
 
@@ -25,6 +25,10 @@ def dump_current():
     else:
         dump_step["executed_instruction"] = None
         dump_step["ref_executed_instruction"] = None
+
+    # Dumps all registers
+    for reg in regs:
+        dump_step["registers"][reg] = int(gdb.parse_and_eval("$" + reg))
 
     return dump_step
 

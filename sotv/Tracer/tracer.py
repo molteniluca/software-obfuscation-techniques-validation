@@ -67,7 +67,7 @@ class Tracer:
 
         self.tracing_graph = new_graph
 
-    def find_variable_name(self, temp_ins, dump_line):
+    '''def find_variable_name(self, temp_ins, dump_line):
         # Computes the absolute load address
         if temp_ins.r2 == "s0":
             address = temp_ins.immediate + 0xa0000000
@@ -88,7 +88,32 @@ class Tracer:
             if address-0xb0000000 == self.global_offsets[variable_name]:
                 return variable_name, address
         # Default name is hex(address) in case of missing symbol, do not trace in case trace_no_symbols == False
+        return None, address'''
+
+    def find_variable_name(self, temp_ins, dump_line):
+        # Computes the absolute load address
+        if temp_ins.r2 == "s0":
+            address = temp_ins.immediate + self.execution_dump.dump[dump_line-1].registers["fp"]
+        else:
+            address = temp_ins.immediate + self.execution_dump.dump[dump_line-1].registers[temp_ins.r2]
+
+        # Computes the offset of the memory operation from fp
+        fp_offset = address - self.execution_dump.dump[dump_line].registers["fp"]
+
+        # Check for occurrences for local variables
+        if temp_ins.function_name in self.function_offsets.keys():
+            for variable_name in self.function_offsets[temp_ins.function_name].keys():
+                if fp_offset == self.function_offsets[temp_ins.function_name][variable_name]:
+                    return variable_name, address
+
+        # Check for occurrences for global variables
+        for variable_name in self.global_offsets.keys():
+            if address == self.global_offsets[variable_name]:
+                return variable_name, address
+        # Default name is hex(address) in case of missing symbol, do not trace in case trace_no_symbols == False
         return None, address
+
+
 
     def trace_variable(self, variable, temp_ins, dump_line):
         """
