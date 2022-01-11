@@ -45,7 +45,20 @@ def test_bulk():
 
     # (rep_scramble (broken, always 0), rep_obfuscate, rep_garbage, heat_value (keep always 1))
 
-    test_list = [(1,2,3,4)]
+    test_list = [None]
+
+    for i in range(100):
+        test_list.append((0,0,1,1))
+    for i in range(100):
+        test_list.append((0,0,2,1))
+    for i in range(100):
+        test_list.append((0,0,3,1))
+    for i in range(100):
+        test_list.append((0,0,4,1))
+    for i in range(100):
+        test_list.append((0,0,5,1))
+    for i in range(100):
+        test_list.append((0,0,6,1))
 
     m = multiprocessing.Manager()
     lock = m.Lock()
