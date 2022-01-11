@@ -29,9 +29,9 @@ void main(void)
   gencrctable();
 
   // Load buffer with BUFFERLEN random bytes
-  for (i=0; i<BUFFERLEN; i++)
-    buff[i] = (byte) rand();
-
+  for (i=0; i<BUFFERLEN; i++){
+    buff[i] = (byte) 0x61;
+    }
   // Compute and output CRC
   crc32 = updatecrc(-1, buff, BUFFERLEN);
 }

@@ -214,7 +214,7 @@ int main(int argc, char **argv)
 {
     FILE *fin;
     SHA_INFO sha_info;
-    fin = fopen("input_small.asc", "rb");
+    fin = fopen("programSamples/sha/input_smaller.asc", "rb");
     if (fin == NULL) {
         printf("error opening %s for reading\n", *argv);
     } else {

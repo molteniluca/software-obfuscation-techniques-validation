@@ -11,6 +11,7 @@ from sotv.exceptions.SubProcessFailedException import SubProcessFailedException
 from sotv.main import compile_program, execute_plain, run_trace, run_score
 from sotv.programSamples.New_Susan.compile_susan import compile_program_susan
 from sotv.programSamples.New_Patricia.compile_patricia import compile_program_patricia, compile_obf_patricia
+from sotv.programSamples.sha.compile_sha import compile_program_sha, compile_obf_sha
 from sotv.utils import compile_asm_nosymbols, obfuscate_bench, parse, compile_exec
 
 program_folder = "./programSamples"
@@ -27,7 +28,8 @@ def test_bulk():
         # "Factorial_Recursion/factorial_recursion.c", compile_program, []),
         # ("fibonacci/fibonacci.c", "main", (utils.compile_exec, compile_obf), []),
         # ("Intensive_Sort/intensive_sort.c", compile_program, []),
-        # ("New_CRC/crc_32_old.c", compile_program, []),
+        # ("New_CRC/crc_32_old.c", "main", (utils.compile_exec, compile_obf), []),
+        # ("CRC2/crc_32_old_speedup.c", "main", (utils.compile_exec, compile_obf), []),
         # ("quickSort/quickSort.c", compile_program, []),
         # ("New_Susan/susan.c", compile_program_susan, ["input_small.pgm"]),
         # ("New_Patricia/patricia_test.c", compile_program_patricia, ["small.udp"]),
@@ -35,20 +37,20 @@ def test_bulk():
         # ("New_AES/aesxam.c", compile_program, ["input_small.asc", "output_small.enc", "e",
         # "1234567890abcdeffedcba09876543211234567890abcdeffedcba0987654321"]),
         # ("matrixMul/matrixMul.c", compile_program, []),
-        ("bubbleSort/bubblesort_old.c", "main", (utils.compile_exec, compile_obf), []),
+        ("sha/sha.c", "main", (compile_program_sha, compile_obf_sha), [], [])
+        # ("bubbleSort/bubblesort_old.c", "main", (utils.compile_exec, compile_obf), []),
         # ("New_Patricia/patricia_test.c", "bit", (compile_program_patricia, compile_obf_patricia), ["./programSamples/New_Patricia/small.udp"], ["main"]),
         # ["./programSamples/New_Patricia/small.udp"])
     ]
 
-    test_list = [
-        None,
-        (1, 1, 1, 1),
-    ]
+    # (rep_scramble (broken, always 0), rep_obfuscate, rep_garbage, heat_value (keep always 1))
+
+    test_list = [(1,2,3,4)]
 
     m = multiprocessing.Manager()
     lock = m.Lock()
 
-    with ProcessPoolExecutor(max_workers=12) as executor:
+    with ProcessPoolExecutor(max_workers=4) as executor:
 
         for program in program_list:
             for test in test_list:
@@ -123,6 +125,8 @@ def compile_obf(input_path, output_path, obfuscator_params, obf_exec_params, O=0
 
     while not obf_success:
         i += 1
+        if i > 100:
+            exit(-0x61)
         try:
             obfuscate_bench(asm_json, *obfuscator_params)
             os.rename(asm_json + ".s", obfuscated_asm)

@@ -112,7 +112,6 @@ def run_trace(plain_execution_dump, symbols_elf, trace_no_symbols=True):
     local_vars, global_vars = offset_finder.offset_finder(symbols_elf)
     tracer = Tracer(local_vars, global_vars, plain_execution_dump)
     tracer.start_trace(trace_no_symbols=trace_no_symbols)
-    tracer.print()
     print("--- %s seconds ---" % (time.time() - start_time))
     return tracer
 
