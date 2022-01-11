@@ -3,11 +3,13 @@ import matplotlib.pyplot as plt
 
 test_registers = ["ra", "sp", "gp", "tp", "t0", "t1", "t2", "t3", "t4", "t5", "t6", "s0", "s1", "s2", "s3", "s4",
              "s5", "s6", "s7", "s8", "s9", "s10", "s11", "a0", "a1", "a2", "a3", "a4", "a5", "a6", "a7"]
-test_variables = ["crctable", "datablkptr", "0x70df8", "crcaccum", "crc32"]
+test_variables = []
 
+for i in range(32):
+    test_variables.append("hash[{}]".format(i))
 
 def main():
-    data = json.loads(open("scoreCalculator/results_bulk/crc_32_old.c.json", "r").read())
+    data = json.loads(open("scoreCalculator/results_bulk/sha256.c.json", "r").read())
     result = None
     min_length = data["plain"][0]["calc"]["dump_length"]
     deton_heat = {"plain": data["plain"][0]["DETON"]["mean_heat"]}
@@ -45,14 +47,17 @@ def main():
 
 def print_graph(result):
     dict_2={}
-    dict_2["plain"]=result["plain"][0]['crc32']["tot % of the variable in register subset:"]
     for key in result.keys():
         if "average" in key:
-            dict_2[key[1:-len(")_average")]] = result[key]['crctable']["tot % of the variable in register subset:"]
-
+            dict_2[key[1:-len(")_average")]] = 0
+    for variable in test_variables:
+        dict_2["plain"]=result["plain"][0][variable]["tot % of the variable in register subset:"]
+        for key in result.keys():
+            if "average" in key:
+                dict_2[key[1:-len(")_average")]] = result[key][variable]["tot % of the variable in register subset:"]
 
     plt.bar(list(dict_2.keys()), dict_2.values())
-    plt.savefig("myfig.png")
+    plt.savefig("chart.png")
 
 
 def average(list_val):

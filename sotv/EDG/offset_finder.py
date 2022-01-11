@@ -7,6 +7,9 @@ from typing import Tuple, Dict, List
 from sotv.EDG.exceptions import ELFWithoutSymbols
 from sotv.EDG.exceptions import DumpWithoutSymbols
 
+arrays = {
+    "./programSamples/sha256/test.out": [("hash", 0, 32), ("ctx", 0, 112), ("buf", 0, 56), ("data", 0, 56), ("text2", 0, 56), ("k", 0, 256)]
+}
 
 def offset_finder_from_dump(dump: list) -> Dict[str, int]:
     """
@@ -20,7 +23,7 @@ def offset_finder_from_dump(dump: list) -> Dict[str, int]:
     raise DumpWithoutSymbols
 
 
-def offset_finder(filename: str) -> Tuple[Dict[str, dict], Dict[str, int]]:
+def offset_finder(filename: str) -> Tuple[Dict[str, dict], Dict[str, int], List[Tuple[str, int, int]]]:
     """
     Finds variables offset from a elf file
     @param filename: path of the elf file
@@ -56,8 +59,10 @@ def offset_finder(filename: str) -> Tuple[Dict[str, dict], Dict[str, int]]:
                                 except KeyError:
                                     function_vars[DIE.attributes["DW_AT_name"].value.decode()] = {}
                                 function_vars[DIE.attributes["DW_AT_name"].value.decode()][decoded[0]] = decoded[1]
-
-            return function_vars, global_vars
+            if filename in arrays.keys():
+                return function_vars, global_vars, arrays[filename]
+            else:
+                return function_vars, global_vars, []
         else:
             raise ELFWithoutSymbols
 

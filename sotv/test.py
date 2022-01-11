@@ -50,17 +50,11 @@ def test_bulk():
     test_list = [None]
 
     for i in range(20):
-        test_list.append((0,0,1,1))
+        test_list.append((0,1,0,1))
     for i in range(20):
-        test_list.append((0,0,2,1))
+        test_list.append((0,1,0,1))
     for i in range(20):
-        test_list.append((0,0,3,1))
-    for i in range(20):
-        test_list.append((0,0,4,1))
-    for i in range(20):
-        test_list.append((0,0,5,1))
-    for i in range(20):
-        test_list.append((0,0,6,1))
+        test_list.append((0,1,0,1))
 
     m = multiprocessing.Manager()
     lock = m.Lock()
@@ -186,7 +180,7 @@ def execute_obfuscated_bench(source_file: str, obfuscator_params, compile_method
 
     obf_execution_dump = compile_method(source_file, obfuscated_elf, obfuscator_params, obf_exec_params)
 
-    tracer = run_trace(obf_execution_dump, os.path.join(folder, executable_elf), trace_no_symbols=True)
+    tracer = run_trace(obf_execution_dump, os.path.join(folder, executable_elf), trace_no_symbols=False)
 
     score = {}
     with open(os.path.join(folder, "out_no_symbols.json_metrics.txt"), "r") as f:

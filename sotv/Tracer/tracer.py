@@ -20,14 +20,14 @@ class Tracer:
     global_offsets: Dict[str, int]
     execution_dump: execution_dump.ExecutionDump
 
-    def __init__(self, local_vars, global_vars, dump, tmp_variables_propagation=10):
+    def __init__(self, local_vars, global_vars, dump, tmp_variables_propagation=10, arrays=[]):
         self.tmp_variables_propagation = tmp_variables_propagation
         self.global_offsets = global_vars
         self.function_offsets = local_vars
         dump.dump = dump.dump[1:]
         self.execution_dump = dump
         self.tracing_graph = {}
-
+        self.arrays = arrays
         # A dictionary listing how many different values a variable already had
         self.already_used = {}
 
@@ -55,6 +55,11 @@ class Tracer:
                     continue
 
                 variable_name, address = self.find_variable_name(temp_ins, dump_line)
+
+                for array in self.arrays:
+                    if variable_name == array[0]:
+                        self.arrays.append((array[0], self.execution_dump.dump[dump_line].registers[temp_ins.r1], array[2]))
+                        self.arrays.remove(array)
 
                 if variable_name is not None:
                     self.trace_variable(variable_name, temp_ins, dump_line)
@@ -111,6 +116,11 @@ class Tracer:
             if address == self.global_offsets[variable_name]:
                 return variable_name, address
         # Default name is hex(address) in case of missing symbol, do not trace in case trace_no_symbols == False
+
+        for name, base, length in self.arrays:
+            if base <= address < base + length:
+                return name + "[" + str(address-base) + "]", address
+
         return None, address
 
 

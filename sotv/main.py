@@ -94,7 +94,7 @@ def execute_plain(source_file: str, compile_method=compile_program, args=[], exc
     exec_params = [executable_elf] + args
 
     plain_execution_dump = run_dump(exec_params, exclude=exclude)
-    tracer = run_trace(plain_execution_dump, executable_elf, trace_no_symbols=True)
+    tracer = run_trace(plain_execution_dump, executable_elf, trace_no_symbols=False)
     return tracer
 
 
@@ -109,8 +109,8 @@ def run_dump(exec_params, ignore_cache=True, exclude=None):
 def run_trace(plain_execution_dump, symbols_elf, trace_no_symbols=True):
     print("# EXECUTE TRACE #\n")
     start_time = time.time()
-    local_vars, global_vars = offset_finder.offset_finder(symbols_elf)
-    tracer = Tracer(local_vars, global_vars, plain_execution_dump)
+    local_vars, global_vars, arrays = offset_finder.offset_finder(symbols_elf)
+    tracer = Tracer(local_vars, global_vars, plain_execution_dump, arrays=arrays)
     tracer.start_trace(trace_no_symbols=trace_no_symbols)
     print("--- %s seconds ---" % (time.time() - start_time))
     return tracer
