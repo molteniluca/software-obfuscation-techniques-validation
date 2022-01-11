@@ -2,11 +2,12 @@ import json
 import matplotlib.pyplot as plt
 
 test_registers = ["ra", "sp", "gp", "tp", "t0", "t1", "t2", "t3", "t4", "t5", "t6", "s0", "s1", "s2", "s3", "s4",
-             "s5", "s6", "s7", "s8", "s9", "s10", "s11", "a0", "a1", "a2", "a3", "a4", "a5", "a6", "a7"]
+                  "s5", "s6", "s7", "s8", "s9", "s10", "s11", "a0", "a1", "a2", "a3", "a4", "a5", "a6", "a7"]
 test_variables = []
 
-for i in range(32):
-    test_variables.append("hash[{}]".format(i))
+for i in range(112):
+    test_variables.append("ctx[{}]".format(i))
+
 
 def main():
     data = json.loads(open("scoreCalculator/results_bulk/sha256.c.json", "r").read())
@@ -22,7 +23,7 @@ def main():
                 else:
                     average_heat = [x + y for x, y in zip(average_heat, elem["DETON"]["mean_heat"])]
         if lev_obf != "plain":
-            deton_heat.update(**{lev_obf: [x/len(data[lev_obf]) for x in average_heat]})
+            deton_heat.update(**{lev_obf: [x / len(data[lev_obf]) for x in average_heat]})
         average_heat = None
     for key, test in data.items():
         print("Evaluating: " + key)
@@ -45,16 +46,18 @@ def main():
     print(json.dumps(result, indent=4))
     print_graph(result)
 
+
 def print_graph(result):
-    dict_2={}
+    dict_2 = {}
     for key in result.keys():
         if "average" in key:
             dict_2[key[1:-len(")_average")]] = 0
+    dict_2["plain"] = 0
     for variable in test_variables:
-        dict_2["plain"]=result["plain"][0][variable]["tot % of the variable in register subset:"]
+        dict_2["plain"] += result["plain"][0][variable]["tot % of the variable in register subset:"]
         for key in result.keys():
             if "average" in key:
-                dict_2[key[1:-len(")_average")]] = result[key][variable]["tot % of the variable in register subset:"]
+                dict_2[key[1:-len(")_average")]] += result[key][variable]["tot % of the variable in register subset:"]
 
     plt.bar(list(dict_2.keys()), dict_2.values())
     plt.savefig("chart.png")
@@ -73,7 +76,7 @@ def average(list_val):
     if temp_elem is not None:
         for val in temp_elem.keys():
             for key in temp_elem[val].keys():
-                temp_elem[val][key] = temp_elem[val][key]/len(list_val)
+                temp_elem[val][key] = temp_elem[val][key] / len(list_val)
     return temp_elem
 
 
