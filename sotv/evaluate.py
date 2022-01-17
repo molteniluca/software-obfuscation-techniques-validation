@@ -9,7 +9,6 @@ test_variables = []
 for i in range(32):
     test_variables.append("hash[{}]".format(i))
 
-
 def main():
     data = json.loads(open("scoreCalculator/results_bulk/sha256.c.json", "r").read())
     result = None
@@ -48,7 +47,9 @@ def main():
         else:
             temp_dict[key] = result[key][0]
     result.update(**temp_dict)
-    save_histogram(collection_detector(result), deton_heat)
+    #save_histogram(collection_detector(result), deton_heat)
+
+    save_histogram2(data)
     #print(json.dumps(result, indent=4))
 
 
@@ -81,7 +82,26 @@ def collection_detector(score):
 
 def save_histogram(score, heat):
     bins = np.linspace(-10, 10, 30)
-    pyplot.hist([score["plain"]["hash"], heat["plain"]], bins, label=["score", "heat"])
+    pyplot.hist([list(score["plain"]["hash"].values())[0:31], list(heat["plain"].values())], bins, label=["score", "heat"])
+    pyplot.show()
+
+
+def save_histogram2(data):
+    new_list=[]
+    for arr in data.values():
+        for el in arr:
+            calc = el["calc"]
+            deton = el["DETON"]
+            for var in test_variables:
+                for idx, reg in enumerate(test_registers):
+                    try:
+                        new_list.append((deton["mean_heat"][idx], calc["metrics_heat"][reg][var]/calc["dump_length"]))
+                    except KeyError as e:
+                        new_list.append((deton["mean_heat"][idx], 0))
+
+    pyplot.scatter(*zip(*new_list))
+    pyplot.xlabel("DETON")
+    pyplot.ylabel("REAL")
     pyplot.show()
 
 
