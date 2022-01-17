@@ -1,15 +1,17 @@
 import json
 from sotv.Tracer.structures import registers
+from matplotlib import pyplot
+import numpy as np
 
 test_registers = registers.copy()[:32]
 test_variables = []
 
-for i in range(112):
-    test_variables.append("ctx[{}]".format(i))
+for i in range(32):
+    test_variables.append("hash[{}]".format(i))
 
 
 def main():
-    data = json.loads(open("scoreCalculator/results_bulk/crc_32_old.c.json", "r").read())
+    data = json.loads(open("scoreCalculator/results_bulk/sha256.c.json", "r").read())
     result = None
     min_length = data["plain"][0]["calc"]["dump_length"]
     deton_heat = {"plain": {test_registers[x]: data["plain"][0]["DETON"]["mean_heat"][x] for x in range(len(test_registers))}}
@@ -42,9 +44,45 @@ def main():
     temp_dict = {}
     for key in result.keys():
         if key != "plain":
-            temp_dict[key + "_average"] = average(result[key])
+            temp_dict[key] = average(result[key])
+        else:
+            temp_dict[key] = result[key][0]
     result.update(**temp_dict)
-    print(json.dumps(result, indent=4))
+    save_histogram(collection_detector(result), deton_heat)
+    #print(json.dumps(result, indent=4))
+
+
+def collection_detector(score):
+    collections_score = None
+    collection_list = []
+    for elem in test_variables:
+        if "[" in elem:
+            temp = elem.split("[")[0]
+            if temp not in collection_list:
+                collection_list.append(temp)
+    for lev_obf in score.keys():
+        for var in score[lev_obf].keys():
+            if var.split("[")[0] in collection_list:
+                for reg in score[lev_obf][var].keys():
+                    if collections_score is None:
+                        collections_score = {lev_obf: {var.split("[")[0]: {reg: score[lev_obf][var][reg]}}}
+                    else:
+                        try:
+                            collections_score[lev_obf][var.split("[")[0]][reg] += score[lev_obf][var][reg]
+                        except KeyError:
+                            if lev_obf not in collections_score.keys():
+                                collections_score.update(**{lev_obf: {var.split("[")[0]: {reg: score[lev_obf][var][reg]}}})
+                            elif var.split("[")[0] not in collections_score[lev_obf].keys():
+                                collections_score[lev_obf].update(**{var.split("[")[0]: {reg: score[lev_obf][var][reg]}})
+                            else:
+                                collections_score[lev_obf][var.split("[")[0]].update(**{reg: score[lev_obf][var][reg]})
+    return collections_score
+
+
+def save_histogram(score, heat):
+    bins = np.linspace(-10, 10, 30)
+    pyplot.hist([score["plain"]["hash"], heat["plain"]], bins, label=["score", "heat"])
+    pyplot.show()
 
 
 def average(list_val):
