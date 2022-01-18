@@ -47,9 +47,10 @@ def main():
         else:
             temp_dict[key] = result[key][0]
     result.update(**temp_dict)
+    collection_detector(result)
+    open("heat.json", "w").write(json.dumps(deton_heat, indent=4))
+    open("score.json", "w").write(json.dumps(result, indent=4))
     #save_histogram(collection_detector(result), deton_heat)
-
-    save_histogram2(data)
     #print(json.dumps(result, indent=4))
 
 
@@ -80,13 +81,7 @@ def collection_detector(score):
     return collections_score
 
 
-def save_histogram(score, heat):
-    bins = np.linspace(-10, 10, 30)
-    pyplot.hist([list(score["plain"]["hash"].values())[0:31], list(heat["plain"].values())], bins, label=["score", "heat"])
-    pyplot.show()
-
-
-def save_histogram2(data):
+def save_histogram(data):
     new_list=[]
     for arr in data.values():
         for el in arr:
