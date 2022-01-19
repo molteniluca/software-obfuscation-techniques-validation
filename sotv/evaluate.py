@@ -1,19 +1,20 @@
 import json
-import matplotlib.pyplot as plt
+from sotv.Tracer.structures import registers
+from matplotlib import pyplot
+import numpy as np
 
-test_registers = ["ra", "sp", "gp", "tp", "t0", "t1", "t2", "t3", "t4", "t5", "t6", "s0", "s1", "s2", "s3", "s4",
-                  "s5", "s6", "s7", "s8", "s9", "s10", "s11", "a0", "a1", "a2", "a3", "a4", "a5", "a6", "a7"]
+test_registers = registers.copy()[:32]
 test_variables = []
 
-for i in range(112):
-    test_variables.append("ctx[{}]".format(i))
-
+for i in range(32):
+    test_variables.append("hash[{}]".format(i))
 
 def main():
     data = json.loads(open("scoreCalculator/results_bulk/sha256.c.json", "r").read())
     result = None
     min_length = data["plain"][0]["calc"]["dump_length"]
-    deton_heat = {"plain": data["plain"][0]["DETON"]["mean_heat"]}
+    deton_heat = {"plain": {test_registers[x]: data["plain"][0]["DETON"]["mean_heat"][x] for x in range(len(test_registers))}}
+    deton_heat["plain"].update(**{"average tot: ": sum(deton_heat["plain"].values())/32})
     average_heat = None
     for lev_obf in data.keys():
         for elem in data[lev_obf]:
@@ -23,7 +24,8 @@ def main():
                 else:
                     average_heat = [x + y for x, y in zip(average_heat, elem["DETON"]["mean_heat"])]
         if lev_obf != "plain":
-            deton_heat.update(**{lev_obf: [x / len(data[lev_obf]) for x in average_heat]})
+            deton_heat.update(**{lev_obf: {test_registers[x]: average_heat[x] / len(data[lev_obf]) for x in range(len(average_heat))}})
+            deton_heat[lev_obf].update(**{"average tot: ": sum(deton_heat[lev_obf].values()) / 32})
         average_heat = None
     for key, test in data.items():
         print("Evaluating: " + key)
@@ -41,26 +43,61 @@ def main():
     temp_dict = {}
     for key in result.keys():
         if key != "plain":
-            temp_dict[key + "_average"] = average(result[key])
+            temp_dict[key] = average(result[key])
+        else:
+            temp_dict[key] = result[key][0]
     result.update(**temp_dict)
-    print(json.dumps(result, indent=4))
-    print_graph(result)
+    collection_detector(result)
+    open("heat.json", "w").write(json.dumps(deton_heat, indent=4))
+    open("score.json", "w").write(json.dumps(result, indent=4))
+    #save_histogram(collection_detector(result), deton_heat)
+    #print(json.dumps(result, indent=4))
 
 
-def print_graph(result):
-    dict_2 = {}
-    for key in result.keys():
-        if "average" in key:
-            dict_2[key[1:-len(")_average")]] = 0
-    dict_2["plain"] = 0
-    for variable in test_variables:
-        dict_2["plain"] += result["plain"][0][variable]["tot % of the variable in register subset:"]
-        for key in result.keys():
-            if "average" in key:
-                dict_2[key[1:-len(")_average")]] += result[key][variable]["tot % of the variable in register subset:"]
+def collection_detector(score):
+    collections_score = None
+    collection_list = []
+    for elem in test_variables:
+        if "[" in elem:
+            temp = elem.split("[")[0]
+            if temp not in collection_list:
+                collection_list.append(temp)
+    for lev_obf in score.keys():
+        for var in score[lev_obf].keys():
+            if var.split("[")[0] in collection_list:
+                for reg in score[lev_obf][var].keys():
+                    if collections_score is None:
+                        collections_score = {lev_obf: {var.split("[")[0]: {reg: score[lev_obf][var][reg]}}}
+                    else:
+                        try:
+                            collections_score[lev_obf][var.split("[")[0]][reg] += score[lev_obf][var][reg]
+                        except KeyError:
+                            if lev_obf not in collections_score.keys():
+                                collections_score.update(**{lev_obf: {var.split("[")[0]: {reg: score[lev_obf][var][reg]}}})
+                            elif var.split("[")[0] not in collections_score[lev_obf].keys():
+                                collections_score[lev_obf].update(**{var.split("[")[0]: {reg: score[lev_obf][var][reg]}})
+                            else:
+                                collections_score[lev_obf][var.split("[")[0]].update(**{reg: score[lev_obf][var][reg]})
+    return collections_score
 
-    plt.bar(list(dict_2.keys()), dict_2.values())
-    plt.savefig("chart.png")
+
+def save_histogram(data):
+    new_list=[]
+    for arr in data.values():
+        for el in arr:
+            calc = el["calc"]
+            deton = el["DETON"]
+            for var in test_variables:
+                for idx, reg in enumerate(test_registers):
+                    try:
+                        new_list.append((deton["mean_heat"][idx], calc["metrics_heat"][reg][var]/calc["dump_length"]))
+                    except KeyError as e:
+                        new_list.append((deton["mean_heat"][idx], 0))
+
+    pyplot.scatter(*zip(*new_list))
+    pyplot.xlabel("DETON")
+    pyplot.ylabel("REAL")
+    pyplot.show()
 
 
 def average(list_val):
@@ -94,7 +131,6 @@ def funct(test):
 
     for variable in test_variables:
         tot = 0
-        i = 0
         for register in test_registers:
             try:
                 try:
@@ -107,7 +143,7 @@ def funct(test):
                     ratios[register].update(**{variable: value})
                 except KeyError:
                     ratios[register] = {variable: value}
-            temp = "tot % of the variable in " + register
+            temp = register
             if results is None:
                 results = {variable: {temp: ratios[register][variable] * 100}}
             else:
@@ -118,7 +154,7 @@ def funct(test):
 
             if variable in ratios[register].keys():
                 tot += ratios[register][variable]
-        temp = "tot % of the variable in register subset:"
+        temp = "average tot: "
         results[variable][temp] = (tot * 100)
     return results
 
