@@ -1,13 +1,13 @@
 import json
 from sotv.Tracer.structures import registers
 from matplotlib import pyplot
-import numpy as np
+
 
 test_registers = registers.copy()[:32]
 test_variables = []
 
-for i in range(32):
-    test_variables.append("hash[{}]".format(i))
+for i in range(108):
+    test_variables.append("ctx[{}]".format(i))
 
 def main():
     data = json.loads(open("scoreCalculator/results_bulk/sha256.c.json", "r").read())
@@ -47,9 +47,8 @@ def main():
         else:
             temp_dict[key] = result[key][0]
     result.update(**temp_dict)
-    collection_detector(result)
     open("heat.json", "w").write(json.dumps(deton_heat, indent=4))
-    open("score.json", "w").write(json.dumps(result, indent=4))
+    open("score.json", "w").write(json.dumps(collection_detector(result), indent=4))
     #save_histogram(collection_detector(result), deton_heat)
     #print(json.dumps(result, indent=4))
 
@@ -155,7 +154,7 @@ def funct(test):
             if variable in ratios[register].keys():
                 tot += ratios[register][variable]
         temp = "average tot: "
-        results[variable][temp] = (tot * 100)
+        results[variable][temp] = (tot * 100)/32
     return results
 
 
