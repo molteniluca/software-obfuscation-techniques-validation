@@ -13,8 +13,7 @@ def main():
     data = json.loads(open("scoreCalculator/results_bulk/sha256.c.json", "r").read())
     result = None
     min_length = data["plain"][0]["calc"]["dump_length"]
-    deton_heat = {"plain": {test_registers[x]: data["plain"][0]["DETON"]["mean_heat"][x] for x in range(len(test_registers))}}
-    deton_heat["plain"].update(**{"average tot: ": sum(deton_heat["plain"].values())/32})
+    DETON_heat = {"plain": {test_registers[x]: data["plain"][0]["DETON"]["mean_heat"][x] for x in range(len(test_registers))}}
     average_heat = None
     for lev_obf in data.keys():
         for elem in data[lev_obf]:
@@ -24,8 +23,7 @@ def main():
                 else:
                     average_heat = [x + y for x, y in zip(average_heat, elem["DETON"]["mean_heat"])]
         if lev_obf != "plain":
-            deton_heat.update(**{lev_obf: {test_registers[x]: average_heat[x] / len(data[lev_obf]) for x in range(len(average_heat))}})
-            deton_heat[lev_obf].update(**{"average tot: ": sum(deton_heat[lev_obf].values()) / 32})
+            DETON_heat.update(**{lev_obf: {test_registers[x]: average_heat[x] / len(data[lev_obf]) for x in range(len(average_heat))}})
         average_heat = None
     for key, test in data.items():
         print("Evaluating: " + key)
@@ -47,10 +45,10 @@ def main():
         else:
             temp_dict[key] = result[key][0]
     result.update(**temp_dict)
-    open("heat.json", "w").write(json.dumps(deton_heat, indent=4))
+    open("heat.json", "w").write(json.dumps(DETON_heat, indent=4))
     open("score.json", "w").write(json.dumps(collection_detector(result), indent=4))
-    #save_histogram(collection_detector(result), deton_heat)
-    #print(json.dumps(result, indent=4))
+    save_histogram(collection_detector(result), DETON_heat)
+
 
 
 def collection_detector(score):
@@ -85,13 +83,13 @@ def save_histogram(data):
     for arr in data.values():
         for el in arr:
             calc = el["calc"]
-            deton = el["DETON"]
+            DETON = el["DETON"]
             for var in test_variables:
                 for idx, reg in enumerate(test_registers):
                     try:
-                        new_list.append((deton["mean_heat"][idx], calc["metrics_heat"][reg][var]/calc["dump_length"]))
+                        new_list.append((DETON["mean_heat"][idx], calc["metrics_heat"][reg][var]/calc["dump_length"]))
                     except KeyError as e:
-                        new_list.append((deton["mean_heat"][idx], 0))
+                        new_list.append((DETON["mean_heat"][idx], 0))
 
     pyplot.scatter(*zip(*new_list))
     pyplot.xlabel("DETON")
@@ -129,7 +127,6 @@ def funct(test):
     results = None
 
     for variable in test_variables:
-        tot = 0
         for register in test_registers:
             try:
                 try:
@@ -144,17 +141,12 @@ def funct(test):
                     ratios[register] = {variable: value}
             temp = register
             if results is None:
-                results = {variable: {temp: ratios[register][variable] * 100}}
+                results = {variable: {temp: ratios[register][variable]}}
             else:
                 try:
-                    results[variable][temp] = ratios[register][variable] * 100
+                    results[variable][temp] = ratios[register][variable]
                 except KeyError:
-                    results.update(**{variable: {temp: (ratios[register][variable] * 100)}})
-
-            if variable in ratios[register].keys():
-                tot += ratios[register][variable]
-        temp = "average tot: "
-        results[variable][temp] = (tot * 100)/32
+                    results.update(**{variable: {temp: (ratios[register][variable])}})
     return results
 
 
