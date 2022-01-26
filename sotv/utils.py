@@ -14,19 +14,8 @@ from sotv.scoreCalculator.score import Metrics
 score_path = "./scoreCalculator/results_bulk/"
 
 
-# {"1_1_1_1":
-#   {"obfmd5":
-#       {"inputmd5":[]
-#       }
-#   }
-#  "plain":{
-#   {"inputmd5":{}
-#       }
-#  }
-# }
-
 def save_score(calc_score, DETON_score, name, obf_params, input_md5, obf_md5):
-    exp_name = score_path + os.path.basename(name) + ".json"
+    exp_name = name
 
     input_md5 = os.path.basename(input_md5)[-32:]
 
