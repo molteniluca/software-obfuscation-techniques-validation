@@ -74,7 +74,7 @@ def initialize_debug():
     # Imports in gdb the executable (For some reason qemu doesnt send this info trough gdbserver)
     gdb.execute("file \"" + exec_file + "\"")
 
-    gdb.execute("target remote :1234")  # Connects to the qemu gdbserver
+    gdb.execute("target remote :" + str(port))  # Connects to the qemu gdbserver
 
     gdb.execute("set pagination off")  # Avoid interruption for command result pagination in gdb
 
@@ -84,7 +84,7 @@ def initialize_debug():
 
 # This shall be executed only by gdb
 if __name__ == "__main__":
-    config_file = open("EDG/tmp/EDG_conf.json", "r")
+    config_file = open("EDG/tmp/EDG_conf" + str(thread_num) + ".json", "r")
     config = config_file.read()
     config = json.loads(config)
 
@@ -93,6 +93,7 @@ if __name__ == "__main__":
     c_variables = config["c_variables"]
     dump_output = config["dump_file"]
     exec_file = config["exec_file"]
+    port = config["port"]
 
     initialize_debug()
     try:

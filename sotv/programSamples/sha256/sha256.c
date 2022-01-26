@@ -174,10 +174,10 @@ int main(int argc, char *argv[])
 	while (1)
     {
         n = fread(buffer, 1, sizeof buffer, file);
+	    sha256_update(&ctx, buffer, n);
         if(n<sizeof buffer){
             break;
         }
-	    sha256_update(&ctx, buffer, n);
     }
 	sha256_final(&ctx, buf);
 

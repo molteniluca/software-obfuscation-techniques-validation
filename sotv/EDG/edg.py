@@ -1,5 +1,6 @@
 import json
 import os
+import signal
 import subprocess
 from typing import Dict
 
@@ -11,13 +12,13 @@ from sotv.Tracer.instruction import Instruction
 
 tmp_folder = "./EDG/tmp/"
 dump_folder = "./EDG/dumps/"
-config_file = "EDG_conf.json"
 
 
 def edg(name: str, executable_params: list, ignore_cache: bool = False, timeout=900000,
-        spawn_terminal=True, exclude=None) -> ExecutionDump:
+        spawn_terminal=False, exclude=None, thread_num=0) -> ExecutionDump:
     """
     This functions performs an execution and dumps data
+    @param thread_num: Thread number to avoid paralellism collisions
     @param exclude: Methods to exclude from the trace
     @param spawn_terminal: Flag that if set makes the program run in a detached window
     @param timeout: Timeout in seconds in case the obfuscator creates an infinite loop
@@ -31,7 +32,9 @@ def edg(name: str, executable_params: list, ignore_cache: bool = False, timeout=
         exclude = []
     else:
         print("Methods blacklist:" + " ".join(exclude))
-    dump_file = dump_folder + name.split("/")[-1] + "_dump.json"
+    dump_file = dump_folder + name.split("/")[-1] + "_" + str(thread_num) + "_dump.json"
+
+    port = 51150+thread_num
 
     config = {
         "registers": ["ra", "sp", "gp", "tp", "t0", "t1", "t2", "fp", "s1", "a0", "a1", "a2", "a3", "a4", "a5", "a6",
@@ -39,27 +42,35 @@ def edg(name: str, executable_params: list, ignore_cache: bool = False, timeout=
         "main_function": "main",
         "c_variables": to_gdb_notation(*offset_finder(executable_params[0])[:-1]),
         "dump_file": dump_file,
-        "exec_file": executable_params[0]
+        "exec_file": executable_params[0],
+        "port": port
     }
 
     if not os.path.exists(dump_folder):
         os.makedirs(dump_folder)
+
+    config_file = "EDG_conf" + str(thread_num) + ".json"
 
     if not os.path.isfile(dump_file) or ignore_cache:
         with open(tmp_folder + config_file, "w") as f:
             f.write(json.dumps(config))
         # Starts qemu session in background
 
-        unix_sock_params = ["-g", "1234"]
+        unix_sock_params = ["-g", str(port)]
 
         if spawn_terminal:
             exec_array = ["terminator", "-x", "timeout", str(timeout), "qemu-riscv64-static"] + unix_sock_params + executable_params
         else:
-            exec_array = ["timeout", str(timeout), "qemu-riscv64-static", "-g", "1234"] + executable_params
+            exec_array = ["timeout", str(timeout), "qemu-riscv64-static", "-g", str(port)] + executable_params
 
         proc = subprocess.Popen(exec_array)
-        subprocess.run(["gdb-multiarch", "-command=./EDG/edg_script.py", "-batch-silent"])
-        proc.kill()
+        try:
+            subprocess.run(["gdb-multiarch", "--batch", "-ex", "py thread_num=" + str(thread_num), "-command=./EDG/edg_script.py", "-batch-silent"])
+        except Exception as e:
+            os.kill(os.getpgid(proc.pid), signal.SIGKILL)
+            print("ERR:" + str(e))
+            raise e
+        os.kill(os.getpgid(proc.pid), signal.SIGKILL)
 
     try:
         dump = json.loads(open(dump_file, "r").read())
