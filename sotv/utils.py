@@ -55,9 +55,7 @@ def save_score(calc_score, DETON_score, name, obf_params, input_md5, obf_md5):
             result[str(obf_params)][obf_md5] = {"DETON": obf_score}
 
         if input_md5 not in result[str(obf_params)][obf_md5].keys():
-            result[str(obf_params)][obf_md5][input_md5] = []
-
-        result[str(obf_params)][obf_md5][input_md5].append(calc_score.get_dict())
+            result[str(obf_params)][obf_md5][input_md5] = calc_score.get_dict()
 
         if "plain" not in result.keys():
             result["plain"] = {}
