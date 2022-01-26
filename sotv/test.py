@@ -31,6 +31,7 @@ def test_bulk():
     input_list = os.listdir("./programSamples/sha256/inputs/")
 
     test_list = []
+
     for executable in executables_list:
         for inp in input_list:
             test_list.append(["./programSamples/sha256/obfuscated/" + executable, "./programSamples/sha256/inputs/" + inp])
@@ -42,9 +43,14 @@ def test_bulk():
         for obf_exec_params in test_list:
             print("Testing:", obf_exec_params)
             obf_params = "_".join(obf_exec_params[0].split("_")[0:4])
-            trace = execute_obfuscated_bench(obf_exec_params)
-            executor.submit(calc_and_save_score, trace, "sha256", obf_params, lock, obf_exec_params[1], obf_exec_params[0])
+            executor.submit(execute_multithreaded, obf_exec_params, "sha256", obf_params, lock)
+
     return
+
+
+def execute_multithreaded(obf_exec_params, name, obf_params, lock):
+    id = int(multiprocessing.current_process().name.split("-")[-1])
+    calc_and_save_score(execute_obfuscated_bench(obf_exec_params, thread_num=id), name, obf_params, lock, obf_exec_params[1], obf_exec_params[0])
 
 
 def calc_and_save_score(trace, name, obf_params, lock, input_md5, obf_md5):
@@ -66,5 +72,5 @@ def gen_compile():
 
 if __name__ == "__main__":
     #gen_compile()
-    test_plain()
+    #test_plain()
     test_bulk()
