@@ -8,8 +8,9 @@ from sotv.EDG.exceptions import ELFWithoutSymbols
 from sotv.EDG.exceptions import DumpWithoutSymbols
 
 arrays = {
-    "./programSamples/sha256/test.out": [("hash", 0, 32), ("ctx", 0, 112), ("buf", 0, 56), ("data", 0, 56), ("text2", 0, 56), ("k", 0, 256)]
+    "./programSamples/sha256/test.out": [("hash", 0, 32), ("ctx", 0, 112), ("buf", 0, 32), ("data", 0, 56), ("buffer", 0, 256), ("k", 0, 256), ("m", 0, 256)]
 }
+
 
 def offset_finder_from_dump(dump: list) -> Dict[str, int]:
     """

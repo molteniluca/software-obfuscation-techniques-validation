@@ -166,7 +166,7 @@ int main(int argc, char *argv[])
 	SHA256_CTX ctx;
 
 	FILE *file = fopen(argv[1], "rb");
-	char buffer[50];
+	char buffer[256];
 	int n;
 
 	sha256_init(&ctx);
@@ -178,8 +178,6 @@ int main(int argc, char *argv[])
             break;
         }
 	    sha256_update(&ctx, buffer, n);
-	    printf("%d",i++);
-	    fflush(NULL);
     }
 	sha256_final(&ctx, buf);
 
