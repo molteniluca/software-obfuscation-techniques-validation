@@ -71,11 +71,12 @@ def gen_compile():
     source_file = "./programSamples/sha256/sha256.c"
     folder = os.path.dirname(source_file)
     executable_elf = os.path.join(folder, "test.out")
-    compile_exec(source_file, executable_elf)
+    #compile_exec(source_file, executable_elf)
     # (rep_scramble (broken, always 0), rep_obfuscate, rep_garbage, heat_value (keep always 1))
-    compile_obf("./programSamples/sha256/sha256.c", ("main", 0, 0, 1, 1))
-    for i in range(10, 90, 10):
-        compile_obf("./programSamples/sha256/sha256.c", ("main", 0, 0, i, 1))
+    compile_obf("./programSamples/sha256/sha256.c", ("main", 0, 0, 30, 1))
+    compile_obf("./programSamples/sha256/sha256.c", ("main", 0, 0, 60, 1))
+    #for i in range(10, 90, 10):
+    #    compile_obf("./programSamples/sha256/sha256.c", ("main", 0, 0, i, 1))
 
 
 if __name__ == "__main__":

@@ -91,7 +91,7 @@ def compile_obf(input_path, obfuscator_params, O=0):
             obfuscate_bench(asm_json, *obfuscator_params)
             os.rename(asm_json + ".s", obfuscated_asm)
             compile_exec(obfuscated_asm, output_path)
-            if not test_integrity([os.path.join(folder, "test.out"), os.path.join(folder, "sha256.c")], [output_path, os.path.join(folder, "sha256.c")]):
+            if not test_integrity([os.path.join(folder, "test.out"), os.path.join(folder, "test.out")], [output_path, os.path.join(folder, "test.out")]):
                 obf_success = False
                 print("\033[91mFailed output integrity\033[0m", file=sys.stderr)
             else:
