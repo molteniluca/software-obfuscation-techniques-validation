@@ -1,3 +1,4 @@
+import json
 import multiprocessing
 import os
 from concurrent.futures import ProcessPoolExecutor
@@ -32,16 +33,22 @@ def test_bulk():
 
     test_list = []
 
+    already_computed = json.loads(open("./scoreCalculator/results_bulk/sha256.json").read())
     for executable in executables_list:
         for inp in input_list:
+            obfuscation = executable[0:executable.rindex("_")]
+            obfuscated_hash = executable[executable.rindex("_")+1:]
+            if obfuscation in already_computed.keys():
+                if obfuscated_hash in already_computed[obfuscation].keys():
+                    if inp in already_computed[obfuscation][obfuscated_hash].keys():
+                        continue
             test_list.append(["./programSamples/sha256/obfuscated/" + executable, "./programSamples/sha256/inputs/" + inp])
 
     m = multiprocessing.Manager()
     lock = m.Lock()
 
-    with ProcessPoolExecutor(max_workers=4) as executor:
+    with ProcessPoolExecutor(max_workers=12) as executor:
         for obf_exec_params in test_list:
-            print("Testing:", obf_exec_params)
             obf_params = "_".join(obf_exec_params[0].split("_")[0:4])
             executor.submit(execute_multithreaded, obf_exec_params, "sha256", obf_params, lock)
 
@@ -49,6 +56,7 @@ def test_bulk():
 
 
 def execute_multithreaded(obf_exec_params, name, obf_params, lock):
+    print("Testing:", obf_exec_params)
     id = int(multiprocessing.current_process().name.split("-")[-1])
     calc_and_save_score(execute_obfuscated_bench(obf_exec_params, thread_num=id), name, obf_params, lock, obf_exec_params[1], obf_exec_params[0])
 
