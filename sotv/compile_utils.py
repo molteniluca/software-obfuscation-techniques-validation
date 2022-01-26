@@ -17,6 +17,7 @@ def compile_program(source_file, executable_elf, asm, destination_folder, O=0):
         print("Compilation failed")
         exit(-1)
 
+
 def compile_asm(input_path: str, output_path: str):
     if system(
             "riscv64-linux-gnu-gcc -g -S --no-PIC -march=rv64i2p0_m2p0_a2p0_f2p0_d2p0_c2p0 -mno-strict-align -mpreferred-stack-boundary=4 -static -fno-stack-protector "

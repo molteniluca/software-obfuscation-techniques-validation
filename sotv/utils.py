@@ -91,7 +91,7 @@ def compile_obf(input_path, obfuscator_params, O=0):
             obfuscate_bench(asm_json, *obfuscator_params)
             os.rename(asm_json + ".s", obfuscated_asm)
             compile_exec(obfuscated_asm, output_path)
-            if not test_integrity(os.path.join(folder, "test.out"), output_path):
+            if not test_integrity([os.path.join(folder, "test.out"), os.path.join(folder, "sha256.c")], [output_path, os.path.join(folder, "sha256.c")]):
                 obf_success = False
                 print("\033[91mFailed output integrity\033[0m", file=sys.stderr)
             else:
@@ -115,9 +115,9 @@ def file_md5(file_path):
 
 
 def test_integrity(plain, obf):
-    process1 = subprocess.Popen([plain], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    process1 = subprocess.Popen(plain, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out1, err1 = process1.communicate()
-    process2 = subprocess.Popen([obf], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    process2 = subprocess.Popen(obf, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out2, err2 = process2.communicate()
 
     return out1 == out2 and err1 == err2

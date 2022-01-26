@@ -124,7 +124,6 @@ class Tracer:
         return None, address
 
 
-
     def trace_variable(self, variable, temp_ins, dump_line):
         """
         Traces a variable starting from a certain memory operation
