@@ -2,38 +2,28 @@ import json
 import multiprocessing
 import os
 from concurrent.futures import ProcessPoolExecutor
-
-from sotv import utils
 from sotv.compile_utils import compile_program, compile_exec
 from sotv.utils import save_score, compile_obf, execute_obfuscated_bench, execute_plain, run_score
 
-program_folder = "./programSamples"
-
 
 def test_plain():
-    folder = "./programSamples/sha256/"
     executable_elf = os.path.join(folder, "test.out")
 
-    input_list = os.listdir("./programSamples/sha256/inputs/")
+    input_list = os.listdir(input_folder)
 
     for inp in input_list:
-        exec_params = [executable_elf, "./programSamples/sha256/inputs/" + inp]
+        exec_params = [executable_elf, os.path.join(input_folder, inp)]
         trace = execute_plain(exec_params[0], compile_method=compile_program, args=exec_params[1:])
-        save_score(run_score(trace), None, "sha256", None, exec_params[1], None)
+        save_score(run_score(trace), None, score_file, None, exec_params[1], None)
 
 
 def test_bulk():
-    # (Path, entry point, compile_suite, args)
-    program_list = [
-        ("sha256/sha256.c", "main", (utils.compile_exec, compile_obf), []),
-    ]
-
-    executables_list = os.listdir("./programSamples/sha256/obfuscated/")
-    input_list = os.listdir("./programSamples/sha256/inputs/")
+    executables_list = os.listdir(obfuscated_folder)
+    input_list = os.listdir(input_folder)
 
     test_list = []
 
-    already_computed = json.loads(open("./scoreCalculator/results_bulk/sha256.json").read())
+    already_computed = json.loads(open(score_file).read())
     for executable in executables_list:
         for inp in input_list:
             obfuscation = executable[0:executable.rindex("_")]
@@ -42,7 +32,7 @@ def test_bulk():
                 if obfuscated_hash in already_computed[obfuscation].keys():
                     if inp in already_computed[obfuscation][obfuscated_hash].keys():
                         continue
-            test_list.append(["./programSamples/sha256/obfuscated/" + executable, "./programSamples/sha256/inputs/" + inp])
+            test_list.append([os.path.join(obfuscated_folder, executable), os.path.join(input_folder, inp)])
 
     m = multiprocessing.Manager()
     lock = m.Lock()
@@ -50,15 +40,15 @@ def test_bulk():
     with ProcessPoolExecutor(max_workers=12) as executor:
         for obf_exec_params in test_list:
             obf_params = "_".join(obf_exec_params[0].split("_")[0:4])
-            executor.submit(execute_multithreaded, obf_exec_params, "sha256", obf_params, lock)
+            executor.submit(execute_multithreaded, obf_exec_params, score_file, obf_params, lock)
 
     return
 
 
 def execute_multithreaded(obf_exec_params, name, obf_params, lock):
     print("Testing:", obf_exec_params)
-    id = int(multiprocessing.current_process().name.split("-")[-1])
-    calc_and_save_score(execute_obfuscated_bench(obf_exec_params, thread_num=id), name, obf_params, lock, obf_exec_params[1], obf_exec_params[0])
+    tid = int(multiprocessing.current_process().name.split("-")[-1])
+    calc_and_save_score(execute_obfuscated_bench(obf_exec_params, thread_num=tid), name, obf_params, lock, obf_exec_params[1], obf_exec_params[0])
 
 
 def calc_and_save_score(trace, name, obf_params, lock, input_md5, obf_md5):
@@ -68,18 +58,22 @@ def calc_and_save_score(trace, name, obf_params, lock, input_md5, obf_md5):
 
 
 def gen_compile():
-    source_file = "./programSamples/sha256/sha256.c"
-    folder = os.path.dirname(source_file)
     executable_elf = os.path.join(folder, "test.out")
-    #compile_exec(source_file, executable_elf)
+    compile_exec(source_file, executable_elf)
     # (rep_scramble (broken, always 0), rep_obfuscate, rep_garbage, heat_value (keep always 1))
-    compile_obf("./programSamples/sha256/sha256.c", ("main", 0, 0, 30, 1))
-    compile_obf("./programSamples/sha256/sha256.c", ("main", 0, 0, 60, 1))
-    #for i in range(10, 90, 10):
-    #    compile_obf("./programSamples/sha256/sha256.c", ("main", 0, 0, i, 1))
+    for i in range(10, 90, 10):
+        compile_obf(source_file, (entry_point, 0, 0, i, 1))
 
 
 if __name__ == "__main__":
+    source_file = "./programSamples/sha256/sha256.c"
+    score_file = "./scoreCalculator/results_bulk/sha256.json"
+
+    folder = os.path.dirname(source_file)
+    obfuscated_folder = os.path.join(folder, "obfuscated")
+    input_folder = os.path.join(folder, "inputs")
+    entry_point = "main"
+
     #gen_compile()
     #test_plain()
     test_bulk()
