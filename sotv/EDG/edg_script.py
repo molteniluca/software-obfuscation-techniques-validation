@@ -72,7 +72,7 @@ def save_dump(dump):
 
 def initialize_debug():
     # Imports in gdb the executable (For some reason qemu doesnt send this info trough gdbserver)
-    gdb.execute("file " + exec_file)
+    gdb.execute("file \"" + exec_file + "\"")
 
     gdb.execute("target remote :1234")  # Connects to the qemu gdbserver
 
