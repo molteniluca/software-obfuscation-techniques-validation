@@ -34,17 +34,10 @@ def main():
         exit(1)
 
 
-def compile_program(source_file, executable_elf, asm, destination_folder, O=0):
-    print("# STARTING COMPILING STAGE #\n")
-    try:
-        utils.compile_exec(source_file, os.path.join(destination_folder, executable_elf), O=O)
-        utils.compile_asm_nosymbols(source_file, os.path.join(destination_folder, asm))
-    except SubProcessFailedException as e:
-        print("Compilation failed")
-        exit(-1)
 
 
-def execute_obfuscated(source_file: str, obfuscator_params: (str, int, int), compile_method=compile_program, args=[]):
+
+def execute_obfuscated(source_file: str, obfuscator_params: (str, int, int), compile_method=compile_program, args=[], use_cached=None):
     sys.setrecursionlimit(10 ** 4)
 
     folder = os.path.dirname(source_file)
@@ -55,74 +48,43 @@ def execute_obfuscated(source_file: str, obfuscator_params: (str, int, int), com
     obf_exec_params = [obfuscated_elf] + args
     executable_elf = "test.out"
 
-    compile_method(source_file, executable_elf, asm, folder)
+    if use_cached is None:
+        compile_method(source_file, executable_elf, asm, folder)
 
-    print("# RUNNING DUMP #\n")
-    obf_success = False
-    i = 0
+        print("# RUNNING DUMP #\n")
+        obf_success = False
+        i = 0
 
-    while not obf_success:
-        i += 1
-        try:
-            utils.parse(os.path.join(folder, asm), asm_json)
-            utils.obfuscate(asm_json, obfuscated_asm, *obfuscator_params)
-            utils.compile_exec(obfuscated_asm, obfuscated_elf)
+        while not obf_success:
+            i += 1
             try:
-                obf_execution_dump = edg.edg(source_file + "_obf_" + str(obfuscator_params[1]) + "_" +
-                                             str(obfuscator_params[2]), obf_exec_params, ignore_cache=True)
-                obf_success = True
-            except DumpFailedException as e:
+                utils.parse(os.path.join(folder, asm), asm_json)
+                utils.obfuscate(asm_json, obfuscated_asm, *obfuscator_params)
+                utils.compile_exec(obfuscated_asm, obfuscated_elf)
+                try:
+                    obf_execution_dump = edg.edg(source_file + "_obf_" + str(obfuscator_params[1]) + "_" +
+                                                 str(obfuscator_params[2]), obf_exec_params, ignore_cache=True)
+                    obf_success = True
+                except DumpFailedException as e:
+                    obf_success = False
+            except SubProcessFailedException as e:
+                print("Failed obfuscation attempt:" + str(i))
                 obf_success = False
-        except SubProcessFailedException as e:
-            print("Failed obfuscation attempt:" + str(i))
-            obf_success = False
 
-    print("#### " + str(obf_execution_dump))
+        print("#### " + str(obf_execution_dump))
+
+    else:
+        obf_exec_params = [use_cached] + args
+        obf_execution_dump = edg.edg(source_file + "_obf_" + str(obfuscator_params[1]) + "_" +
+                                     str(obfuscator_params[2]), obf_exec_params, ignore_cache=True)
 
     tracer = run_trace(obf_execution_dump, os.path.join(folder, executable_elf), trace_no_symbols=True)
     return tracer
 
 
-def execute_plain(source_file: str, compile_method=compile_program, args=[], exclude=None):
-    sys.setrecursionlimit(10 ** 4)
-
-    asm = "out_no_symbols.s"
-    folder = os.path.dirname(source_file)
-    executable_elf = os.path.join(folder, "test.out")
-
-    compile_method(source_file, executable_elf)
-    exec_params = [executable_elf] + args
-
-    plain_execution_dump = run_dump(exec_params, exclude=exclude)
-    tracer = run_trace(plain_execution_dump, executable_elf, trace_no_symbols=False)
-    return tracer
 
 
-def run_dump(exec_params, ignore_cache=True, exclude=None):
-    print("# EXECUTE DUMP #")
-    start_time = time.time()
-    plain_execution_dump = edg.edg(exec_params[0], exec_params, ignore_cache=ignore_cache, exclude=exclude)
-    print("--- %s seconds ---" % (time.time() - start_time))
-    return plain_execution_dump
 
-
-def run_trace(plain_execution_dump, symbols_elf, trace_no_symbols=True):
-    print("# EXECUTE TRACE #\n")
-    start_time = time.time()
-    local_vars, global_vars, arrays = offset_finder.offset_finder(symbols_elf)
-    tracer = Tracer(local_vars, global_vars, plain_execution_dump, arrays=arrays)
-    tracer.start_trace(trace_no_symbols=trace_no_symbols)
-    print("--- %s seconds ---" % (time.time() - start_time))
-    return tracer
-
-
-def run_score(tracer):
-    print("# CALCULATE SCORE #")
-    start_time = time.time()
-    metrics = Metrics(tracer)
-    metrics.metric_score()
-    print("--- %s seconds ---" % (time.time() - start_time))
-    return metrics
 
 
 score_path = "./scoreCalculator/results/"

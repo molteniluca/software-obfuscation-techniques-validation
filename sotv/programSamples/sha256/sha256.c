@@ -160,13 +160,27 @@ void sha256_final(SHA256_CTX *ctx, BYTE hash[])
 	}
 }
 
-int main()
+int main(int argc, char *argv[])
 {
     BYTE buf[SHA256_BLOCK_SIZE];
 	SHA256_CTX ctx;
-	BYTE text2[] = {"abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq"};
+
+	FILE *file = fopen(argv[1], "rb");
+	char buffer[50];
+	int n;
+
 	sha256_init(&ctx);
-	sha256_update(&ctx, text2, 56);
+	int i=0;
+	while (1)
+    {
+        n = fread(buffer, 1, sizeof buffer, file);
+        if(n<sizeof buffer){
+            break;
+        }
+	    sha256_update(&ctx, buffer, n);
+	    printf("%d",i++);
+	    fflush(NULL);
+    }
 	sha256_final(&ctx, buf);
 
     for(int i=0; i<32;i++){

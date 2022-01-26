@@ -1,7 +1,6 @@
 import json
 import os
 import subprocess
-import sys
 from typing import Dict
 
 from sotv import utils
@@ -16,7 +15,7 @@ config_file = "EDG_conf.json"
 
 
 def edg(name: str, executable_params: list, ignore_cache: bool = False, timeout=900000,
-        spawn_terminal=False, exclude=None) -> ExecutionDump:
+        spawn_terminal=True, exclude=None) -> ExecutionDump:
     """
     This functions performs an execution and dumps data
     @param exclude: Methods to exclude from the trace
@@ -93,7 +92,6 @@ def parse_instructions(dump) -> Dict[str, Instruction]:
     @param dump: The execution dump
     @return: The dictionary in which the keys are the instruction ref and the values are the parsed instructions
     """
-
 
     code = ""
     for line in dump:
