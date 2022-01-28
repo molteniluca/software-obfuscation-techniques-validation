@@ -1,8 +1,9 @@
 import json
+from sotv.Tracer.structures import registers
 import matplotlib.pyplot as plt
+from numpy import random
 
-test_registers = ["ra", "sp", "gp", "tp", "t0", "t1", "t2", "t3", "t4", "t5", "t6", "s0", "s1", "s2", "s3", "s4",
-                  "s5", "s6", "s7", "s8", "s9", "s10", "s11", "a0", "a1", "a2", "a3", "a4", "a5", "a6", "a7"]
+test_registers = registers.copy()[:32]
 test_variables = []
 
 for i in range(112):
@@ -10,41 +11,52 @@ for i in range(112):
 
 
 def main():
-    data = json.loads(open("scoreCalculator/results_bulk/sha256.c.json", "r").read())
+    data = json.loads(open("scoreCalculator/results_bulk/sha256.json", "r").read())
     result = None
-    min_length = data["plain"][0]["calc"]["dump_length"]
-    deton_heat = {"plain": data["plain"][0]["DETON"]["mean_heat"]}
-    average_heat = None
-    for lev_obf in data.keys():
-        for elem in data[lev_obf]:
-            if lev_obf != "plain":
-                if average_heat is None:
-                    average_heat = elem["DETON"]["mean_heat"]
-                else:
-                    average_heat = [x + y for x, y in zip(average_heat, elem["DETON"]["mean_heat"])]
-        if lev_obf != "plain":
-            deton_heat.update(**{lev_obf: [x / len(data[lev_obf]) for x in average_heat]})
-        average_heat = None
-    for key, test in data.items():
+    deton_heat = average_heat(data)
+    for key in data.keys():
         print("Evaluating: " + key)
         if result is None:
             result = {key: []}
         if key not in result.keys():
             result[key] = []
-        if isinstance(test, list):
-            for lil_test in test:
-                if lil_test["calc"]["dump_length"] >= min_length:
-                    result[key].append(funct(lil_test))
-        else:
-            if test["calc"]["dump_length"] >= min_length:
-                result[key].append(funct(test))
+        result[key].append(funct(data, key))
+#        if isinstance(test, list):
+#            for lil_test in test:
+#                result[key].append(funct(lil_test))
+#        else:
+#            result[key].append(funct(test))
     temp_dict = {}
     for key in result.keys():
         if key != "plain":
-            temp_dict[key + "_average"] = average(result[key])
+            temp_dict[key] = average(result[key][0])
+        else:
+            temp_dict[key] = result[key][0]
     result.update(**temp_dict)
-    print(json.dumps(result, indent=4))
-    print_graph(result)
+    collection = collection_detector(result)
+    group_average(collection, deton_heat)
+
+
+def group_average(collection_score, heat):
+    subset_list = random.choice(test_registers, 6, False)
+    subset_list_2 = []
+    subset_list_4 = []
+    for num in range(len(subset_list)):
+        temp = num
+        temp_1 = [subset_list[temp]]
+        temp_2 = [subset_list[temp]]
+        while temp < len(subset_list) - 1:
+            temp_1.append(subset_list[temp + 1])
+            if temp_1 not in subset_list_2:
+                subset_list_2.append(temp_1)
+            temp_1 = [subset_list[temp + 1]]
+            temp_2.append(subset_list[temp + 1])
+            if len(temp_2) == 4 and temp != 5:
+                subset_list_4.append(temp_2)
+                temp_2 = [subset_list[temp + 1]]
+            temp += 1
+
+
 
 
 def print_graph(result):
@@ -63,6 +75,48 @@ def print_graph(result):
     plt.savefig("chart.png")
 
 
+def collection_detector(score):
+    collections_score = None
+    collection_list = []
+    for elem in test_variables:
+        if "[" in elem:
+            temp = elem.split("[")[0]
+            if temp not in collection_list:
+                collection_list.append(temp)
+    for lev_obf in score.keys():
+        for var in score[lev_obf].keys():
+            if var.split("[")[0] in collection_list:
+                for reg in score[lev_obf][var].keys():
+                    if collections_score is None:
+                        collections_score = {lev_obf: {var.split("[")[0]: {reg: score[lev_obf][var][reg]}}}
+                    else:
+                        try:
+                            collections_score[lev_obf][var.split("[")[0]][reg] += score[lev_obf][var][reg]
+                        except KeyError:
+                            if lev_obf not in collections_score.keys():
+                                collections_score.update(**{lev_obf: {var.split("[")[0]: {reg: score[lev_obf][var][reg]}}})
+                            elif var.split("[")[0] not in collections_score[lev_obf].keys():
+                                collections_score[lev_obf].update(**{var.split("[")[0]: {reg: score[lev_obf][var][reg]}})
+                            else:
+                                collections_score[lev_obf][var.split("[")[0]].update(**{reg: score[lev_obf][var][reg]})
+    return collections_score
+
+
+def average_heat(data):
+    dict_heat = {"plain": data["plain"]["DETON"]["mean_heat"]}
+    average_heat_list = None
+    for lev_obf in data.keys():
+        if lev_obf != "plain":
+            for elem in data[lev_obf]:
+                if average_heat_list is None:
+                    average_heat_list = data[lev_obf][elem]["DETON"]["mean_heat"]
+                else:
+                    average_heat_list = [x + y for x, y in zip(average_heat_list, data[lev_obf][elem]["DETON"]["mean_heat"])]
+            dict_heat.update(**{lev_obf: [x / len(data[lev_obf]) for x in average_heat_list]})
+        average_heat_list = None
+    return dict_heat
+
+
 def average(list_val):
     temp_elem = None
     for elem in list_val:
@@ -79,48 +133,45 @@ def average(list_val):
                 temp_elem[val][key] = temp_elem[val][key] / len(list_val)
     return temp_elem
 
-
-def funct(test):
-    if "calc" not in test.keys():
-        calc = test
-    else:
-        calc = test["calc"]
-
-    metrics_heat = calc["metrics_heat"]
-
-    ratios = {}
-    value = None
-    results = None
-
-    for variable in test_variables:
-        tot = 0
-        i = 0
-        for register in test_registers:
-            try:
-                try:
-                    value = metrics_heat[register][variable] / calc["dump_length"]
-                except KeyError:
-                    value = 0
-                ratios[register][variable] += value
-            except KeyError:
-                try:
-                    ratios[register].update(**{variable: value})
-                except KeyError:
-                    ratios[register] = {variable: value}
-            temp = "tot % of the variable in " + register
-            if results is None:
-                results = {variable: {temp: ratios[register][variable] * 100}}
-            else:
-                try:
-                    results[variable][temp] = ratios[register][variable] * 100
-                except KeyError:
-                    results.update(**{variable: {temp: (ratios[register][variable] * 100)}})
-
-            if variable in ratios[register].keys():
-                tot += ratios[register][variable]
-        temp = "tot % of the variable in register subset:"
-        results[variable][temp] = (tot * 100)
+def score_calc(calc):
+    for key in calc.keys():
+        if key != "DETON":
+            metrics_heat = calc[key]["metrics_heat"]
+            ratios = {}
+            value = None
+            results = None
+            for variable in test_variables:
+                for register in test_registers:
+                    try:
+                        try:
+                            value = metrics_heat[register][variable] / calc[key]["dump_length"]
+                        except KeyError:
+                            value = 0
+                        ratios[register][variable] += value
+                    except KeyError:
+                        try:
+                            ratios[register].update(**{variable: value})
+                        except KeyError:
+                            ratios[register] = {variable: value}
+                    if results is None:
+                        results = {variable: {register: ratios[register][variable] * 100}}
+                    else:
+                        try:
+                            results[variable][register] = ratios[register][variable] * 100
+                        except KeyError:
+                            results.update(**{variable: {register: (ratios[register][variable] * 100)}})
     return results
+
+def funct(data, key):
+    results = []
+    if key != "plain":
+        for elem in data[key].keys():
+            results.append(score_calc(data[key][elem]))
+    else:
+        results = score_calc(data[key])
+    return results
+
+
 
 
 if __name__ == "__main__":
