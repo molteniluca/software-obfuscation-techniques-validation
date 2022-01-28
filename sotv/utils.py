@@ -89,7 +89,8 @@ def compile_obf(input_path, obfuscator_params, O=0):
 
                 out_rename = str_params + "_" + file_md5(output_path)
                 os.rename(output_path, os.path.join(obf_folder, out_rename))
-                os.rename("out_no_symbols.json_metrics.txt", os.path.join(obf_folder, out_rename + "_metrics.txt"))
+                os.rename(os.path.join(folder, "out_no_symbols.json_metrics.txt"), os.path.join(obf_folder, out_rename + "_metrics.txt"))
+                os.rename(os.path.join(folder, "obf.s"), os.path.join(obf_folder, out_rename + "_obf.s"))
         except SubProcessFailedException as e:
             print("Failed obfuscation attempt:" + str(i))
             obf_success = False
@@ -109,7 +110,7 @@ def file_md5(file_path):
 def test_integrity(plain, obf):
     process1 = subprocess.Popen(plain, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out1, err1 = process1.communicate()
-    process2 = subprocess.Popen(obf, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    process2 = subprocess.Popen(["timeout", "1"] + obf, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out2, err2 = process2.communicate()
 
     return out1 == out2 and err1 == err2

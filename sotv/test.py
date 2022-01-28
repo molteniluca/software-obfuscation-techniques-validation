@@ -23,7 +23,11 @@ def test_bulk():
 
     test_list = []
 
-    already_computed = json.loads(open(score_file).read())
+    try:
+        already_computed = json.loads(open(score_file).read())
+    except FileNotFoundError as e:
+        already_computed = {}
+
     for executable in executables_list:
         for inp in input_list:
             obfuscation = executable[0:executable.rindex("_")]
@@ -60,8 +64,10 @@ def calc_and_save_score(trace, name, obf_params, lock, input_md5, obf_md5):
 def gen_compile():
     executable_elf = os.path.join(folder, "test.out")
     compile_exec(source_file, executable_elf)
+
+    compile_obf(source_file, (entry_point, 0, 0, 1, 1))
     # (rep_scramble (broken, always 0), rep_obfuscate, rep_garbage, heat_value (keep always 1))
-    for i in range(10, 90, 10):
+    for i in range(10, 80, 10):
         compile_obf(source_file, (entry_point, 0, 0, i, 1))
 
 
