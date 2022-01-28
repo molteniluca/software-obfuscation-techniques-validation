@@ -36,6 +36,8 @@ def test_bulk():
                 if obfuscated_hash in already_computed[obfuscation].keys():
                     if inp in already_computed[obfuscation][obfuscated_hash].keys():
                         continue
+            if executable.endswith(".s") or executable.endswith(".txt"):
+                continue
             test_list.append([os.path.join(obfuscated_folder, executable), os.path.join(input_folder, inp)])
 
     m = multiprocessing.Manager()
@@ -80,6 +82,6 @@ if __name__ == "__main__":
     input_folder = os.path.join(folder, "inputs")
     entry_point = "main"
 
-    #gen_compile()
-    #test_plain()
-    test_bulk()
+    # gen_compile()
+    test_plain()
+    # test_bulk()

@@ -90,7 +90,7 @@ if __name__ == "__main__":
 
     regs = config["registers"]
     main_function = config["main_function"]
-    c_variables = config["c_variables"]
+    # c_variables = config["c_variables"]
     dump_output = config["dump_file"]
     exec_file = config["exec_file"]
     port = config["port"]

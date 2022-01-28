@@ -63,7 +63,7 @@ def offset_finder(filename: str) -> Tuple[Dict[str, dict], Dict[str, int], List[
                                     function_vars[DIE.attributes["DW_AT_name"].value.decode()] = {}
                                 function_vars[DIE.attributes["DW_AT_name"].value.decode()][decoded[0]] = decoded[1]
             if os.path.normpath(filename) in arrays.keys():
-                return function_vars, global_vars, arrays[filename]
+                return function_vars, global_vars, arrays[os.path.normpath(filename)]
             else:
                 return function_vars, global_vars, []
         else:
