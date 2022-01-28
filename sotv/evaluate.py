@@ -1,6 +1,7 @@
 import json
 from sotv.Tracer.structures import registers
 import matplotlib.pyplot as plt
+from numpy import random
 
 test_registers = registers.copy()[:32]
 test_variables = []
@@ -33,8 +34,29 @@ def main():
             temp_dict[key] = result[key][0]
     result.update(**temp_dict)
     collection = collection_detector(result)
-    print(json.dumps(collection, indent=4))
-    print_graph(collection)
+    group_average(collection, deton_heat)
+
+
+def group_average(collection_score, heat):
+    subset_list = random.choice(test_registers, 6, False)
+    subset_list_2 = []
+    subset_list_4 = []
+    for num in range(len(subset_list)):
+        temp = num
+        temp_1 = [subset_list[temp]]
+        temp_2 = [subset_list[temp]]
+        while temp < len(subset_list) - 1:
+            temp_1.append(subset_list[temp + 1])
+            if temp_1 not in subset_list_2:
+                subset_list_2.append(temp_1)
+            temp_1 = [subset_list[temp + 1]]
+            temp_2.append(subset_list[temp + 1])
+            if len(temp_2) == 4 and temp != 5:
+                subset_list_4.append(temp_2)
+                temp_2 = [subset_list[temp + 1]]
+            temp += 1
+
+
 
 
 def print_graph(result):
