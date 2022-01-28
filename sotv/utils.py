@@ -167,7 +167,7 @@ def execute_obfuscated_bench(obf_exec_params, symbols_elf="../test.out", thread_
     trace = run_trace(obf_execution_dump, os.path.join(folder, symbols_elf), trace_no_symbols=False)
 
     score = {}
-    with open(os.path.join(folder, obf_exec_params[0] + "_metrics.txt"), "r") as f:
+    with open(obf_exec_params[0] + "_metrics.txt", "r") as f:
         for line in f:
             key_line, value = line.split(":")
             score[key_line] = json.loads(value.split("->")[0])

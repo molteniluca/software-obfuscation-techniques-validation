@@ -40,7 +40,7 @@ def edg(name: str, executable_params: list, ignore_cache: bool = False, timeout=
         "registers": ["ra", "sp", "gp", "tp", "t0", "t1", "t2", "fp", "s1", "a0", "a1", "a2", "a3", "a4", "a5", "a6",
                       "a7", "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s9", "s10", "s11", "t3", "t4", "t5", "t6", "pc"],
         "main_function": "main",
-        "c_variables": to_gdb_notation(*offset_finder(executable_params[0])[:-1]),
+        # "c_variables": to_gdb_notation(*offset_finder(executable_params[0])[:-1]),
         "dump_file": dump_file,
         "exec_file": executable_params[0],
         "port": port
