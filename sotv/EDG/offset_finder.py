@@ -1,3 +1,5 @@
+import os.path
+
 from elftools.common.py3compat import itervalues
 from elftools.dwarf.descriptions import describe_DWARF_expr
 from elftools.dwarf.locationlists import LocationParser, LocationExpr
@@ -8,7 +10,7 @@ from sotv.EDG.exceptions import ELFWithoutSymbols
 from sotv.EDG.exceptions import DumpWithoutSymbols
 
 arrays = {
-    "./programSamples/sha256/test.out": [("hash", 0, 32), ("ctx", 0, 112), ("buf", 0, 32), ("data", 0, 56), ("buffer", 0, 256), ("k", 0, 256), ("m", 0, 256)]
+    "programSamples/sha256/test.out": [("hash", 0, 32), ("ctx", 0, 112), ("buf", 0, 32), ("data", 0, 56), ("buffer", 0, 256), ("k", 0, 256), ("m", 0, 256)]
 }
 
 
@@ -60,7 +62,7 @@ def offset_finder(filename: str) -> Tuple[Dict[str, dict], Dict[str, int], List[
                                 except KeyError:
                                     function_vars[DIE.attributes["DW_AT_name"].value.decode()] = {}
                                 function_vars[DIE.attributes["DW_AT_name"].value.decode()][decoded[0]] = decoded[1]
-            if filename in arrays.keys():
+            if os.path.normpath(filename) in arrays.keys():
                 return function_vars, global_vars, arrays[filename]
             else:
                 return function_vars, global_vars, []
