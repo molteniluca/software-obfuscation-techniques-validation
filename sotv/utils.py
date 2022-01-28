@@ -86,7 +86,10 @@ def compile_obf(input_path, obfuscator_params, O=0):
             else:
                 obf_success = True
                 str_params = str(obfuscator_params[1]) + "_" + str(obfuscator_params[2]) + "_" + str(obfuscator_params[3]) + "_" + str(obfuscator_params[4])
-                os.rename(output_path, os.path.join(obf_folder, str_params + "_" + file_md5(output_path)))
+
+                out_rename = str_params + "_" + file_md5(output_path)
+                os.rename(output_path, os.path.join(obf_folder, out_rename))
+                os.rename("out_no_symbols.json_metrics.txt", os.path.join(obf_folder, out_rename + "_metrics.txt"))
         except SubProcessFailedException as e:
             print("Failed obfuscation attempt:" + str(i))
             obf_success = False
@@ -163,7 +166,7 @@ def execute_obfuscated_bench(obf_exec_params, symbols_elf="../test.out", thread_
     trace = run_trace(obf_execution_dump, os.path.join(folder, symbols_elf), trace_no_symbols=False)
 
     score = {}
-    with open(os.path.join(folder, "../out_no_symbols.json_metrics.txt"), "r") as f:
+    with open(os.path.join(folder, obf_exec_params[0] + "_metrics.txt"), "r") as f:
         for line in f:
             key_line, value = line.split(":")
             score[key_line] = json.loads(value.split("->")[0])
