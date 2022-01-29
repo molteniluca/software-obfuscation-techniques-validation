@@ -43,7 +43,7 @@ def test_bulk():
     m = multiprocessing.Manager()
     lock = m.Lock()
 
-    with ProcessPoolExecutor(max_workers=12) as executor:
+    with ProcessPoolExecutor(max_workers=14) as executor:
         for obf_exec_params in test_list:
             obf_params = "_".join(obf_exec_params[0].split("_")[0:4])
             executor.submit(execute_multithreaded, obf_exec_params, score_file, obf_params, lock)
@@ -65,12 +65,27 @@ def calc_and_save_score(trace, name, obf_params, lock, input_md5, obf_md5):
 
 def gen_compile():
     executable_elf = os.path.join(folder, "test.out")
-    compile_exec(source_file, executable_elf)
+    # compile_exec(source_file, executable_elf)
 
-    compile_obf(source_file, (entry_point, 0, 0, 1, 1))
+    #for k in range(9):
+    #    compile_obf(source_file, (entry_point, 0, 0, 1, 1))
+    #    print("1", k)
     # (rep_scramble (broken, always 0), rep_obfuscate, rep_garbage, heat_value (keep always 1))
-    for i in range(10, 80, 10):
-        compile_obf(source_file, (entry_point, 0, 0, i, 1))
+
+    #for k in range(8):
+    #    for i in range(10, 60, 10):
+    #        compile_obf(source_file, (entry_point, 0, 0, i, 1))
+    #        print("2", k, i)
+
+    #for k in range(9):
+    #    for i in range(1, 5):
+    #        compile_obf(source_file, (entry_point, 0, i, 0, 1))
+    #        print("3", k, i)
+
+    #for k in range(9):
+    #    for i in range(1, 4):
+    #    compile_obf(source_file, (entry_point, 0, 5, 0, 1))
+    #    print("4", k, 5)
 
 
 if __name__ == "__main__":
@@ -82,6 +97,6 @@ if __name__ == "__main__":
     input_folder = os.path.join(folder, "inputs")
     entry_point = "main"
 
-    # gen_compile()
-    test_plain()
-    # test_bulk()
+    #gen_compile()
+    #test_plain()
+    test_bulk()
