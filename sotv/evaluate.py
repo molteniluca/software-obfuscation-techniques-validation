@@ -113,26 +113,41 @@ def group_average(collection_score, heat, num_reg=6):
                 temp_score[lev_obf].update(**{str(elem): value_t_1})
             temp_score[lev_obf].update(**{"AVG_4": value_score / len(subset_list_2)})
             temp_heat[lev_obf].update(**{"AVG_4": value_heat / len(subset_list_2)})
-    print("debug")
+
+    to_be_printed = ["AVG_1", "AVG_2", "AVG_4"]
+    deton_params = ['plain', '0_0_1_1', '0_0_10_1', '0_0_20_1', '0_0_30_1', '0_0_40_1', '0_0_50_1', '0_1_0_1',
+                    '0_2_0_1', '0_3_0_1', '0_4_0_1', '0_5_0_1', '0_1_10_1', '0_2_20_1', '0_3_30_1']
+
+    print_graph(temp_heat, temp_score, to_be_printed, deton_params)
 
 
+def print_graph(temp_heat, temp_score, to_be_printed, deton_params):
+    fig, to_be_printed_graphs = plt.subplots(len(to_be_printed))
 
+    for i, to_print in enumerate(to_be_printed):
+        x_array = []
+        SCORE_array = []
+        DETON_array = []
 
+        for key in deton_params:
+            value = temp_score[key]
+            x_array.append(key)
+            SCORE_array.append(value[to_print])
+            DETON_array.append(temp_heat[key][to_print])
 
-def print_graph(result):
-    dict_2 = {}
-    for key in result.keys():
-        if "average" in key:
-            dict_2[key[1:-len(")_average")]] = 0
-    dict_2["plain"] = 0
-    for variable in test_variables:
-        dict_2["plain"] += result["plain"][0][variable]["tot % of the variable in register subset:"]
-        for key in result.keys():
-            if "average" in key:
-                dict_2[key[1:-len(")_average")]] += result[key][variable]["tot % of the variable in register subset:"]
+        to_be_printed_graphs[i].plot(x_array, SCORE_array, color="blue", label="Calculated Score")
+        to_be_printed_graphs[i].set_ylabel('Score', color="blue")
+        to_be_printed_graphs[i].set_title(to_print)
+        to_be_printed_graphs[i].tick_params(axis='y', labelcolor="blue")
 
-    plt.bar(list(dict_2.keys()), dict_2.values())
-    plt.savefig("chart.png")
+        second_graph = to_be_printed_graphs[i].twinx()
+        second_graph.set_ylabel("DETON Heat", color='red')
+        second_graph.plot(x_array, DETON_array, color="red")
+        second_graph.tick_params(axis='y', labelcolor="red")
+
+    fig.tight_layout()
+    plt.tight_layout()
+    plt.show()
 
 
 def collection_detector(score):
@@ -193,6 +208,7 @@ def average(list_val):
                 temp_elem[val][key] = temp_elem[val][key] / len(list_val)
     return temp_elem
 
+
 def score_calc(calc):
     for key in calc.keys():
         if key != "DETON":
@@ -221,6 +237,7 @@ def score_calc(calc):
                         except KeyError:
                             results.update(**{variable: {register: (ratios[register][variable] * 100)}})
     return results
+
 
 def funct(data, key):
     results = []
