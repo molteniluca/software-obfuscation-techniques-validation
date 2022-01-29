@@ -37,11 +37,11 @@ def main():
     group_average(collection, deton_heat)
 
 
-def group_average(collection_score, heat):
-    subset_list = random.choice(test_registers, 6, False)
+def group_average(collection_score, heat, num_reg=6):
+    subset_list = random.choice(test_registers, num_reg, False)
     subset_list_2 = []
     subset_list_4 = []
-    for num in range(len(subset_list)):
+    for num in range(len(subset_list)-3):
         temp = num
         temp_1 = [subset_list[temp]]
         temp_2 = [subset_list[temp]]
@@ -55,6 +55,66 @@ def group_average(collection_score, heat):
                 subset_list_4.append(temp_2)
                 temp_2 = [subset_list[temp + 1]]
             temp += 1
+    temp_score = None
+    temp_heat = None
+    for lev_obf in collection_score.keys():
+        value_heat = 0
+        value_score = 0
+        for elem in subset_list:
+            if temp_score is None:
+                temp_score = {lev_obf: {elem: collection_score[lev_obf]["ctx"][elem]}}
+            elif lev_obf not in temp_score.keys():
+                temp_score.update(**{lev_obf: {elem: collection_score[lev_obf]["ctx"][elem]}})
+            else:
+                temp_score[lev_obf].update(**{elem: collection_score[lev_obf]["ctx"][elem]})
+            if temp_heat is None:
+                temp_heat = {lev_obf: {elem: heat[lev_obf][elem]}}
+            elif lev_obf not in temp_heat.keys():
+                temp_heat.update(**{lev_obf: {elem: heat[lev_obf][elem]}})
+            else:
+                temp_heat[lev_obf].update(**{elem: heat[lev_obf][elem]})
+            value_heat += heat[lev_obf][elem]
+            value_score += collection_score[lev_obf]["ctx"][elem]
+        temp_score[lev_obf].update(**{"AVG_1": value_score/len(subset_list)})
+        temp_heat[lev_obf].update(**{"AVG_1": value_heat/len(subset_list)})
+        value_heat = 0
+        value_score = 0
+        for elem in subset_list_2:
+            value_t_1 = (collection_score[lev_obf]["ctx"][elem[0]] + collection_score[lev_obf]["ctx"][elem[1]])/2
+            value_t_2 = (heat[lev_obf][elem[0]] + heat[lev_obf][elem[1]])/2
+            value_score += value_t_1
+            value_heat += value_t_2
+            if lev_obf not in temp_heat.keys():
+                temp_heat.update(**{lev_obf: {str(elem): value_t_2}})
+            else:
+                temp_heat[lev_obf].update(**{str(elem): value_t_2})
+            if lev_obf not in temp_score.keys():
+                temp_score.update(**{lev_obf: {str(elem): value_t_1}})
+            else:
+                temp_score[lev_obf].update(**{str(elem): value_t_1})
+            temp_score[lev_obf].update(**{"AVG_2": value_score / len(subset_list_2)})
+            temp_heat[lev_obf].update(**{"AVG_2": value_heat / len(subset_list_2)})
+        value_heat = 0
+        value_score = 0
+        for elem in subset_list_4:
+            value_t_1 = (collection_score[lev_obf]["ctx"][elem[0]] + collection_score[lev_obf]["ctx"][elem[1]] +
+                         collection_score[lev_obf]["ctx"][elem[2]] + collection_score[lev_obf]["ctx"][elem[3]])/4
+            value_t_2 = (heat[lev_obf][elem[0]] + heat[lev_obf][elem[1]] +
+                         heat[lev_obf][elem[2]] + heat[lev_obf][elem[3]] )/4
+            value_heat += value_t_2
+            value_score += value_t_1
+            if lev_obf not in temp_heat.keys():
+                temp_heat.update(**{lev_obf: {str(elem): value_t_2}})
+            else:
+                temp_heat[lev_obf].update(**{str(elem): value_t_2})
+            if lev_obf not in temp_score.keys():
+                temp_score.update(**{lev_obf: {str(elem): value_t_1}})
+            else:
+                temp_score[lev_obf].update(**{str(elem): value_t_1})
+            temp_score[lev_obf].update(**{"AVG_4": value_score / len(subset_list_2)})
+            temp_heat[lev_obf].update(**{"AVG_4": value_heat / len(subset_list_2)})
+    print("debug")
+
 
 
 
@@ -103,7 +163,7 @@ def collection_detector(score):
 
 
 def average_heat(data):
-    dict_heat = {"plain": data["plain"]["DETON"]["mean_heat"]}
+    dict_heat = {"plain": {test_registers[x]: data["plain"]["DETON"]["mean_heat"][x] for x in range(len(test_registers))}}
     average_heat_list = None
     for lev_obf in data.keys():
         if lev_obf != "plain":
@@ -112,7 +172,7 @@ def average_heat(data):
                     average_heat_list = data[lev_obf][elem]["DETON"]["mean_heat"]
                 else:
                     average_heat_list = [x + y for x, y in zip(average_heat_list, data[lev_obf][elem]["DETON"]["mean_heat"])]
-            dict_heat.update(**{lev_obf: [x / len(data[lev_obf]) for x in average_heat_list]})
+            dict_heat.update(**{lev_obf: {test_registers[x]: average_heat_list[x] / len(data[lev_obf]) for x in range(len(average_heat_list))}})
         average_heat_list = None
     return dict_heat
 
