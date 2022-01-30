@@ -2,6 +2,7 @@ import json
 from sotv.Tracer.structures import registers
 import matplotlib.pyplot as plt
 from numpy import random
+from itertools import combinations
 
 test_registers = registers.copy()[:32]
 test_variables = []
@@ -37,24 +38,10 @@ def main():
     group_average(collection, deton_heat)
 
 
-def group_average(collection_score, heat, num_reg=6):
+def group_average(collection_score, heat, num_reg=6, name_collection = "ctx"):
     subset_list = random.choice(test_registers, num_reg, False)
-    subset_list_2 = []
-    subset_list_4 = []
-    for num in range(len(subset_list)-3):
-        temp = num
-        temp_1 = [subset_list[temp]]
-        temp_2 = [subset_list[temp]]
-        while temp < len(subset_list) - 1:
-            temp_1.append(subset_list[temp + 1])
-            if temp_1 not in subset_list_2:
-                subset_list_2.append(temp_1)
-            temp_1 = [subset_list[temp + 1]]
-            temp_2.append(subset_list[temp + 1])
-            if len(temp_2) == 4 and temp != 5:
-                subset_list_4.append(temp_2)
-                temp_2 = [subset_list[temp + 1]]
-            temp += 1
+    subset_list_2 = list(combinations(subset_list, 2))
+    subset_list_4 = list(combinations(subset_list, 4))
     temp_score = None
     temp_heat = None
     for lev_obf in collection_score.keys():
@@ -62,11 +49,11 @@ def group_average(collection_score, heat, num_reg=6):
         value_score = 0
         for elem in subset_list:
             if temp_score is None:
-                temp_score = {lev_obf: {elem: collection_score[lev_obf]["ctx"][elem]}}
+                temp_score = {lev_obf: {elem: collection_score[lev_obf][name_collection][elem]}}
             elif lev_obf not in temp_score.keys():
-                temp_score.update(**{lev_obf: {elem: collection_score[lev_obf]["ctx"][elem]}})
+                temp_score.update(**{lev_obf: {elem: collection_score[lev_obf][name_collection][elem]}})
             else:
-                temp_score[lev_obf].update(**{elem: collection_score[lev_obf]["ctx"][elem]})
+                temp_score[lev_obf].update(**{elem: collection_score[lev_obf][name_collection][elem]})
             if temp_heat is None:
                 temp_heat = {lev_obf: {elem: heat[lev_obf][elem]}}
             elif lev_obf not in temp_heat.keys():
@@ -80,7 +67,7 @@ def group_average(collection_score, heat, num_reg=6):
         value_heat = 0
         value_score = 0
         for elem in subset_list_2:
-            value_t_1 = (collection_score[lev_obf]["ctx"][elem[0]] + collection_score[lev_obf]["ctx"][elem[1]])/2
+            value_t_1 = (collection_score[lev_obf][name_collection][elem[0]] + collection_score[lev_obf][name_collection][elem[1]])/2
             value_t_2 = (heat[lev_obf][elem[0]] + heat[lev_obf][elem[1]])/2
             value_score += value_t_1
             value_heat += value_t_2
@@ -97,8 +84,8 @@ def group_average(collection_score, heat, num_reg=6):
         value_heat = 0
         value_score = 0
         for elem in subset_list_4:
-            value_t_1 = (collection_score[lev_obf]["ctx"][elem[0]] + collection_score[lev_obf]["ctx"][elem[1]] +
-                         collection_score[lev_obf]["ctx"][elem[2]] + collection_score[lev_obf]["ctx"][elem[3]])/4
+            value_t_1 = (collection_score[lev_obf][name_collection][elem[0]] + collection_score[lev_obf][name_collection][elem[1]] +
+                         collection_score[lev_obf][name_collection][elem[2]] + collection_score[lev_obf][name_collection][elem[3]])/4
             value_t_2 = (heat[lev_obf][elem[0]] + heat[lev_obf][elem[1]] +
                          heat[lev_obf][elem[2]] + heat[lev_obf][elem[3]] )/4
             value_heat += value_t_2
