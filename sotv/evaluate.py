@@ -8,7 +8,7 @@ test_registers = registers.copy()[:32]
 test_variables = []
 
 for i in range(112):
-    test_variables.append("ctx[{}]".format(i))
+    test_variables.append(f"ctx[{i}]")
 
 
 def main():
@@ -38,7 +38,7 @@ def main():
     group_average(collection, deton_heat)
 
 
-def group_average(collection_score, heat, num_reg=6, name_collection = "ctx", mode=False):
+def group_average(collection_score, heat, num_reg=32, num_tests=100, name_collection = "ctx", mode=False):
     subset_list = random.choice(test_registers, num_reg, False)
     subset_list_2 = []
     subset_list_4 = []
@@ -50,8 +50,8 @@ def group_average(collection_score, heat, num_reg=6, name_collection = "ctx", mo
     else:
         random.shuffle(subset_list_2_t)
         random.shuffle(subset_list_4_t)
-        temp_list_2 = list(random.randint(low=0, high= len(subset_list_2_t), size=(num_reg, )))
-        temp_list_4 = list(random.randint(low=0, high= len(subset_list_4_t), size=(num_reg, )))
+        temp_list_2 = list(random.randint(low=0, high= len(subset_list_2_t), size=(num_tests, )))
+        temp_list_4 = list(random.randint(low=0, high= len(subset_list_4_t), size=(num_tests, )))
         for num in temp_list_2:
             subset_list_2.append(subset_list_2_t[num])
         for num in temp_list_4:
@@ -148,8 +148,9 @@ def print_graph(temp_heat, temp_score, to_be_printed, deton_params):
         second_graph.tick_params(axis='y', labelcolor="red")
 
     fig.tight_layout()
+    fig.set_size_inches(1920/100, 1080/100)
     plt.tight_layout()
-    plt.show()
+    plt.savefig("data.png")
 
 
 def collection_detector(score):
