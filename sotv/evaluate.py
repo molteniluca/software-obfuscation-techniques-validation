@@ -38,10 +38,25 @@ def main():
     group_average(collection, deton_heat)
 
 
-def group_average(collection_score, heat, num_reg=6, name_collection = "ctx"):
+def group_average(collection_score, heat, num_reg=6, name_collection = "ctx", mode=False):
     subset_list = random.choice(test_registers, num_reg, False)
-    subset_list_2 = list(combinations(subset_list, 2))
-    subset_list_4 = list(combinations(subset_list, 4))
+    subset_list_2 = []
+    subset_list_4 = []
+    subset_list_2_t = list(combinations(test_registers, 2))
+    subset_list_4_t = list(combinations(test_registers, 4))
+    if mode:
+        subset_list_2 = list(combinations(subset_list, 2))
+        subset_list_4 = list(combinations(subset_list, 4))
+    else:
+        random.shuffle(subset_list_2_t)
+        random.shuffle(subset_list_4_t)
+        temp_list_2 = list(random.randint(low=0, high= len(subset_list_2_t), size=(num_reg, )))
+        temp_list_4 = list(random.randint(low=0, high= len(subset_list_4_t), size=(num_reg, )))
+        for num in temp_list_2:
+            subset_list_2.append(subset_list_2_t[num])
+        for num in temp_list_4:
+            subset_list_4.append(subset_list_4_t[num])
+
     temp_score = None
     temp_heat = None
     for lev_obf in collection_score.keys():
