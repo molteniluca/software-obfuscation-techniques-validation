@@ -32,7 +32,7 @@ def edg(name: str, executable_params: list, ignore_cache: bool = False, timeout=
         exclude = []
     else:
         print("Methods blacklist:" + " ".join(exclude))
-    dump_file = dump_folder + name.split("/")[-1] + "_" + str(thread_num) + "_dump.json"
+    dump_file = dump_folder + name.split("/")[-1] + "_" + str(executable_params[1].split("/")[-1]) + "_dump.json"
 
     port = 51150+thread_num
 

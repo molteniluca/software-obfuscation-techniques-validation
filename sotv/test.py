@@ -90,7 +90,7 @@ def gen_compile():
 
 if __name__ == "__main__":
     source_file = "./programSamples/sha256/sha256.c"
-    score_file = "./scoreCalculator/results_bulk/sha256.json"
+    score_file = "./scoreCalculator/results_bulk/sha256_new.json"
 
     folder = os.path.dirname(source_file)
     obfuscated_folder = os.path.join(folder, "obfuscated")
@@ -98,5 +98,5 @@ if __name__ == "__main__":
     entry_point = "main"
 
     #gen_compile()
-    #test_plain()
+    test_plain()
     test_bulk()

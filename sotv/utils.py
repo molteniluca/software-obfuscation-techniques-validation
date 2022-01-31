@@ -116,7 +116,7 @@ def test_integrity(plain, obf):
     return out1 == out2 and err1 == err2
 
 
-def run_dump(exec_params, ignore_cache=True, exclude=None, timeout=90000, thread_num=0):
+def run_dump(exec_params, ignore_cache=False, exclude=None, timeout=90000, thread_num=0):
     print("# EXECUTE DUMP #")
     start_time = time.time()
     plain_execution_dump = edg.edg(exec_params[0], exec_params, ignore_cache=ignore_cache, exclude=exclude, timeout=timeout, thread_num=thread_num)
@@ -162,7 +162,7 @@ def execute_obfuscated_bench(obf_exec_params, symbols_elf="../test.out", thread_
 
     folder = os.path.dirname(obf_exec_params[0])
 
-    obf_execution_dump = run_dump(obf_exec_params, ignore_cache=True, exclude=None, timeout=90000, thread_num=thread_num)
+    obf_execution_dump = run_dump(obf_exec_params, ignore_cache=False, exclude=None, timeout=90000, thread_num=thread_num)
 
     trace = run_trace(obf_execution_dump, os.path.join(folder, symbols_elf), trace_no_symbols=False)
 

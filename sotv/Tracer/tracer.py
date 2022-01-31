@@ -55,11 +55,14 @@ class Tracer:
                     continue
 
                 variable_name, address = self.find_variable_name(temp_ins, dump_line)
+                if variable_name is not None:
+                    variable_name = temp_ins.function_name + "+" + variable_name
 
                 for array in self.arrays:
-                    if variable_name == array[0]:
-                        self.arrays.append((array[0], self.execution_dump.dump[dump_line].registers[temp_ins.r1], array[2]))
-                        self.arrays.remove(array)
+                    if temp_ins.function_name == array[3]:
+                        if variable_name == array[0]:
+                            self.arrays.append((array[0], self.execution_dump.dump[dump_line].registers[temp_ins.r1], array[2], array[3]))
+                            self.arrays.remove(array)
 
                 if variable_name is not None:
                     self.trace_variable(variable_name, temp_ins, dump_line)
@@ -117,9 +120,10 @@ class Tracer:
                 return variable_name, address
         # Default name is hex(address) in case of missing symbol, do not trace in case trace_no_symbols == False
 
-        for name, base, length in self.arrays:
-            if base <= address < base + length:
-                return name + "[" + str(address-base) + "]", address
+        for name, base, length, fun_name in self.arrays:
+            if fun_name == temp_ins.function_name:
+                if base <= address < base + length:
+                    return name + "[" + str(address-base) + "]", address
 
         return None, address
 
