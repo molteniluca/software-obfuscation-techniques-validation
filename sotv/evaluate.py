@@ -34,11 +34,11 @@ def main():
         else:
             temp_dict[key] = result[key][0]
     result.update(**temp_dict)
-    collection = collection_detector(result)
+    collection = aggregator(result)
     group_average(collection, deton_heat)
 
 
-def group_average(collection_score, heat, num_reg=32, num_tests=100, name_collection = "ctx", mode=False):
+def group_average(collection_score, heat, num_reg=32, num_tests=100, mode=False):
     subset_list = random.choice(test_registers, num_reg, False)
     subset_list_2 = []
     subset_list_4 = []
@@ -64,11 +64,11 @@ def group_average(collection_score, heat, num_reg=32, num_tests=100, name_collec
         value_score = 0
         for elem in subset_list:
             if temp_score is None:
-                temp_score = {lev_obf: {elem: collection_score[lev_obf][name_collection][elem]}}
+                temp_score = {lev_obf: {elem: collection_score[lev_obf][elem]}}
             elif lev_obf not in temp_score.keys():
-                temp_score.update(**{lev_obf: {elem: collection_score[lev_obf][name_collection][elem]}})
+                temp_score.update(**{lev_obf: {elem: collection_score[lev_obf][elem]}})
             else:
-                temp_score[lev_obf].update(**{elem: collection_score[lev_obf][name_collection][elem]})
+                temp_score[lev_obf].update(**{elem: collection_score[lev_obf][elem]})
             if temp_heat is None:
                 temp_heat = {lev_obf: {elem: heat[lev_obf][elem]}}
             elif lev_obf not in temp_heat.keys():
@@ -76,13 +76,13 @@ def group_average(collection_score, heat, num_reg=32, num_tests=100, name_collec
             else:
                 temp_heat[lev_obf].update(**{elem: heat[lev_obf][elem]})
             value_heat += heat[lev_obf][elem]
-            value_score += collection_score[lev_obf]["ctx"][elem]
+            value_score += collection_score[lev_obf][elem]
         temp_score[lev_obf].update(**{"AVG_1": value_score/len(subset_list)})
         temp_heat[lev_obf].update(**{"AVG_1": value_heat/len(subset_list)})
         value_heat = 0
         value_score = 0
         for elem in subset_list_2:
-            value_t_1 = (collection_score[lev_obf][name_collection][elem[0]] + collection_score[lev_obf][name_collection][elem[1]])/2
+            value_t_1 = (collection_score[lev_obf][elem[0]] + collection_score[lev_obf][elem[1]])/2
             value_t_2 = (heat[lev_obf][elem[0]] + heat[lev_obf][elem[1]])/2
             value_score += value_t_1
             value_heat += value_t_2
@@ -99,8 +99,8 @@ def group_average(collection_score, heat, num_reg=32, num_tests=100, name_collec
         value_heat = 0
         value_score = 0
         for elem in subset_list_4:
-            value_t_1 = (collection_score[lev_obf][name_collection][elem[0]] + collection_score[lev_obf][name_collection][elem[1]] +
-                         collection_score[lev_obf][name_collection][elem[2]] + collection_score[lev_obf][name_collection][elem[3]])/4
+            value_t_1 = (collection_score[lev_obf][elem[0]] + collection_score[lev_obf][elem[1]] +
+                         collection_score[lev_obf][elem[2]] + collection_score[lev_obf][elem[3]])/4
             value_t_2 = (heat[lev_obf][elem[0]] + heat[lev_obf][elem[1]] +
                          heat[lev_obf][elem[2]] + heat[lev_obf][elem[3]] )/4
             value_heat += value_t_2
@@ -153,30 +153,21 @@ def print_graph(temp_heat, temp_score, to_be_printed, deton_params):
     plt.savefig("data.png")
 
 
-def collection_detector(score):
+def aggregator(score):
     collections_score = None
-    collection_list = []
-    for elem in test_variables:
-        if "[" in elem:
-            temp = elem.split("[")[0]
-            if temp not in collection_list:
-                collection_list.append(temp)
     for lev_obf in score.keys():
         for var in score[lev_obf].keys():
-            if var.split("[")[0] in collection_list:
-                for reg in score[lev_obf][var].keys():
-                    if collections_score is None:
-                        collections_score = {lev_obf: {var.split("[")[0]: {reg: score[lev_obf][var][reg]}}}
-                    else:
-                        try:
-                            collections_score[lev_obf][var.split("[")[0]][reg] += score[lev_obf][var][reg]
-                        except KeyError:
-                            if lev_obf not in collections_score.keys():
-                                collections_score.update(**{lev_obf: {var.split("[")[0]: {reg: score[lev_obf][var][reg]}}})
-                            elif var.split("[")[0] not in collections_score[lev_obf].keys():
-                                collections_score[lev_obf].update(**{var.split("[")[0]: {reg: score[lev_obf][var][reg]}})
-                            else:
-                                collections_score[lev_obf][var.split("[")[0]].update(**{reg: score[lev_obf][var][reg]})
+            for reg in score[lev_obf][var].keys():
+                if collections_score is None:
+                    collections_score = {lev_obf: {reg: score[lev_obf][var][reg]}}
+                else:
+                    try:
+                        collections_score[lev_obf][reg] += score[lev_obf][var][reg]
+                    except KeyError:
+                        if lev_obf not in collections_score.keys():
+                            collections_score.update(**{lev_obf: {reg: score[lev_obf][var][reg]}})
+                        else:
+                            collections_score[lev_obf].update(**{reg: score[lev_obf][var][reg]})
     return collections_score
 
 
