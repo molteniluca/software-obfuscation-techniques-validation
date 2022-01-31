@@ -63,7 +63,7 @@ def compile_obf_sha(input_path, output_path, obfuscator_params, obf_exec_params,
             else:
                 try:
                     obf_execution_dump = edg.edg(os.path.basename(input_path) + "_last_obf",
-                                                 obf_exec_params, ignore_cache=True, exclude=[])
+                                                 obf_exec_params, ignore_cache=False, exclude=[])
                     obf_success = True
                 except DumpFailedException as e:
                     obf_success = False
