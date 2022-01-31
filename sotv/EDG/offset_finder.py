@@ -10,7 +10,7 @@ from sotv.EDG.exceptions import ELFWithoutSymbols
 from sotv.EDG.exceptions import DumpWithoutSymbols
 
 arrays = {
-    "programSamples/sha256/test.out": [("hash", 0, 32), ("ctx", 0, 112), ("buf", 0, 32), ("data", 0, 56), ("buffer", 0, 256), ("k", 0, 256), ("m", 0, 256)]
+    "programSamples/sha256/test.out": [("hash", 0, 32), ("ctx", 0, 112), ("buf", 0, 32), ("data", 0, 256), ("buffer", 0, 256), ("k", 0, 256), ("m", 0, 256)]
 }
 
 
