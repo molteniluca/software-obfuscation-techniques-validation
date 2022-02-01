@@ -55,8 +55,6 @@ class Tracer:
                     continue
 
                 variable_name, address = self.find_variable_name(temp_ins, dump_line)
-                if variable_name is not None:
-                    variable_name = temp_ins.function_name + "+" + variable_name
 
                 for array in self.arrays:
                     if temp_ins.function_name == array[3]:
@@ -65,6 +63,7 @@ class Tracer:
                             self.arrays.remove(array)
 
                 if variable_name is not None:
+                    variable_name = temp_ins.function_name + "+" + variable_name
                     self.trace_variable(variable_name, temp_ins, dump_line)
                 elif trace_no_symbols:
                     self.trace_variable(hex(address), temp_ins, dump_line)
