@@ -7,12 +7,16 @@ from itertools import combinations
 test_registers = registers.copy()[:32]
 test_variables = []
 
-for i in range(112):
-    test_variables.append(f"ctx[{i}]")
+for i in range(32):
+    test_variables.append(f"sha256_final+hash[{i}]")
+
+#for i in range(256):
+#    test_variables.append(f"main+buffer[{i}]")
+#    test_variables.append(f"sha256_update+data[{i}]")
 
 
 def main():
-    data = json.loads(open("scoreCalculator/results_bulk/sha256.json", "r").read())
+    data = json.loads(open("scoreCalculator/results_bulk/sha256_new.json", "r").read())
     result = None
     deton_heat = average_heat(data)
     for key in data.keys():
@@ -117,8 +121,10 @@ def group_average(collection_score, heat, num_reg=32, num_tests=100, mode=False)
             temp_heat[lev_obf].update(**{"AVG_4": value_heat / len(subset_list_2)})
 
     to_be_printed = ["AVG_1", "AVG_2", "AVG_4"]
-    deton_params = ['plain', '0_0_1_1', '0_0_10_1', '0_0_20_1', '0_0_30_1', '0_0_40_1', '0_0_50_1', '0_1_0_1',
-                    '0_2_0_1', '0_3_0_1', '0_4_0_1', '0_5_0_1', '0_1_10_1', '0_2_20_1', '0_3_30_1']
+    deton_params = ['plain']
+    deton_params += ['0_0_1_1', '0_0_10_1', '0_0_20_1', '0_0_30_1', '0_0_40_1', '0_0_50_1']
+    deton_params += ['0_1_0_1', '0_2_0_1', '0_3_0_1', '0_4_0_1', '0_5_0_1']
+    deton_params += ['0_1_10_1', '0_2_20_1', '0_3_30_1']
 
     print_graph(temp_heat, temp_score, to_be_printed, deton_params)
 
@@ -150,7 +156,8 @@ def print_graph(temp_heat, temp_score, to_be_printed, deton_params):
     fig.tight_layout()
     fig.set_size_inches(1920/100, 1080/100)
     plt.tight_layout()
-    plt.savefig("data.png")
+    #plt.savefig("./evaluate_results/hash_single_garbage.png")
+    plt.show()
 
 
 def aggregator(score):
