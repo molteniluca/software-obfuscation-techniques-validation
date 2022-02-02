@@ -7,12 +7,12 @@ from itertools import combinations
 test_registers = registers.copy()[:32]
 test_variables = []
 
-for i in range(32):
-    test_variables.append(f"sha256_final+hash[{i}]")
+#for i in range(32):
+#    test_variables.append(f"sha256_final+hash[{i}]")
 
-#for i in range(256):
-#    test_variables.append(f"main+buffer[{i}]")
-#    test_variables.append(f"sha256_update+data[{i}]")
+for i in range(256):
+    test_variables.append(f"main+buffer[{i}]")
+    test_variables.append(f"sha256_update+data[{i}]")
 
 
 def main():
@@ -42,16 +42,16 @@ def main():
     group_average(collection, deton_heat)
 
 
-def group_average(collection_score, heat, num_reg=32, num_tests=100, mode=False):
+def group_average(collection_score, heat, num_reg=31, num_tests=100, mode=False):
     subset_list = random.choice(test_registers, num_reg, False)
     subset_list_2 = []
     subset_list_4 = []
-    subset_list_2_t = list(combinations(test_registers, 2))
-    subset_list_4_t = list(combinations(test_registers, 4))
     if mode:
         subset_list_2 = list(combinations(subset_list, 2))
         subset_list_4 = list(combinations(subset_list, 4))
     else:
+        subset_list_2_t = list(combinations(test_registers, 2))
+        subset_list_4_t = list(combinations(test_registers, 4))
         random.shuffle(subset_list_2_t)
         random.shuffle(subset_list_4_t)
         temp_list_2 = list(random.randint(low=0, high= len(subset_list_2_t), size=(num_tests, )))
@@ -117,8 +117,8 @@ def group_average(collection_score, heat, num_reg=32, num_tests=100, mode=False)
                 temp_score.update(**{lev_obf: {str(elem): value_t_1}})
             else:
                 temp_score[lev_obf].update(**{str(elem): value_t_1})
-            temp_score[lev_obf].update(**{"AVG_4": value_score / len(subset_list_2)})
-            temp_heat[lev_obf].update(**{"AVG_4": value_heat / len(subset_list_2)})
+            temp_score[lev_obf].update(**{"AVG_4": value_score / len(subset_list_4)})
+            temp_heat[lev_obf].update(**{"AVG_4": value_heat / len(subset_list_4)})
 
     to_be_printed = ["AVG_1", "AVG_2", "AVG_4"]
     deton_params = ['plain']
@@ -188,7 +188,7 @@ def average_heat(data):
                     average_heat_list = data[lev_obf][elem]["DETON"]["mean_heat"]
                 else:
                     average_heat_list = [x + y for x, y in zip(average_heat_list, data[lev_obf][elem]["DETON"]["mean_heat"])]
-            dict_heat.update(**{lev_obf: {test_registers[x]: average_heat_list[x] / len(data[lev_obf]) for x in range(len(average_heat_list))}})
+            dict_heat.update(**{lev_obf: {test_registers[x]: average_heat_list[x] / len(data[lev_obf]) for x in range(len(test_registers))}})
         average_heat_list = None
     return dict_heat
 
