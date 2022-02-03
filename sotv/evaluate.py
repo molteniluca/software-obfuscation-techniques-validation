@@ -7,15 +7,29 @@ from itertools import combinations
 test_registers = registers.copy()[:32]
 test_variables = []
 
-#for i in range(32):
-#    test_variables.append(f"sha256_final+hash[{i}]")
+def init_test_variable():
+    for i in range(32):
+        test_variables.append(f"sha256_final+hash[{i}]")
 
-for i in range(256):
-    test_variables.append(f"main+buffer[{i}]")
-    test_variables.append(f"sha256_update+data[{i}]")
+    for i in range(256):
+        test_variables.append(f"main+buffer[{i}]")
+        test_variables.append(f"sha256_update+data[{i}]")
+        test_variables.append(f"sha256_transform+k[{i}]")
+        test_variables.append(f"sha256_transform+m[{i}]")
+
+    for i in range(112):
+        test_variables.append(f"sha256_final+ctx[{i}]")
+        test_variables.append(f"sha256_init+ctx[{i}]")
+        test_variables.append(f"sha256_update+ctx[{i}]")
+        test_variables.append(f"sha256_transform+ctx[{i}]")
+        test_variables.append(f"main+ctx[{i}]")
+    test_variables.append(f"sha256_transform+c")
+    test_variables.append(f"sha256_transform+d")
+    test_variables.append(f"sha256_transform+g")
 
 
 def main():
+    init_test_variable()
     data = json.loads(open("scoreCalculator/results_bulk/sha256_new.json", "r").read())
     result = None
     deton_heat = average_heat(data)
@@ -42,7 +56,7 @@ def main():
     group_average(collection, deton_heat)
 
 
-def group_average(collection_score, heat, num_reg=31, num_tests=100, mode=False):
+def group_average(collection_score, heat, num_reg=32, num_tests=100, mode=True):
     subset_list = random.choice(test_registers, num_reg, False)
     subset_list_2 = []
     subset_list_4 = []
@@ -86,8 +100,8 @@ def group_average(collection_score, heat, num_reg=31, num_tests=100, mode=False)
         value_heat = 0
         value_score = 0
         for elem in subset_list_2:
-            value_t_1 = (collection_score[lev_obf][elem[0]] + collection_score[lev_obf][elem[1]])/2
-            value_t_2 = (heat[lev_obf][elem[0]] + heat[lev_obf][elem[1]])/2
+            value_t_1 = (collection_score[lev_obf][elem[0]] + collection_score[lev_obf][elem[1]])
+            value_t_2 = (heat[lev_obf][elem[0]] + heat[lev_obf][elem[1]])
             value_score += value_t_1
             value_heat += value_t_2
             if lev_obf not in temp_heat.keys():
@@ -98,15 +112,15 @@ def group_average(collection_score, heat, num_reg=31, num_tests=100, mode=False)
                 temp_score.update(**{lev_obf: {str(elem): value_t_1}})
             else:
                 temp_score[lev_obf].update(**{str(elem): value_t_1})
-            temp_score[lev_obf].update(**{"AVG_2": value_score / len(subset_list_2)})
-            temp_heat[lev_obf].update(**{"AVG_2": value_heat / len(subset_list_2)})
+        temp_score[lev_obf].update(**{"AVG_2": value_score / len(subset_list_2)})
+        temp_heat[lev_obf].update(**{"AVG_2": value_heat / len(subset_list_2)})
         value_heat = 0
         value_score = 0
         for elem in subset_list_4:
             value_t_1 = (collection_score[lev_obf][elem[0]] + collection_score[lev_obf][elem[1]] +
-                         collection_score[lev_obf][elem[2]] + collection_score[lev_obf][elem[3]])/4
+                         collection_score[lev_obf][elem[2]] + collection_score[lev_obf][elem[3]])
             value_t_2 = (heat[lev_obf][elem[0]] + heat[lev_obf][elem[1]] +
-                         heat[lev_obf][elem[2]] + heat[lev_obf][elem[3]] )/4
+                         heat[lev_obf][elem[2]] + heat[lev_obf][elem[3]] )
             value_heat += value_t_2
             value_score += value_t_1
             if lev_obf not in temp_heat.keys():
@@ -117,8 +131,8 @@ def group_average(collection_score, heat, num_reg=31, num_tests=100, mode=False)
                 temp_score.update(**{lev_obf: {str(elem): value_t_1}})
             else:
                 temp_score[lev_obf].update(**{str(elem): value_t_1})
-            temp_score[lev_obf].update(**{"AVG_4": value_score / len(subset_list_4)})
-            temp_heat[lev_obf].update(**{"AVG_4": value_heat / len(subset_list_4)})
+        temp_score[lev_obf].update(**{"AVG_4": value_score / len(subset_list_4)})
+        temp_heat[lev_obf].update(**{"AVG_4": value_heat / len(subset_list_4)})
 
     to_be_printed = ["AVG_1", "AVG_2", "AVG_4"]
     deton_params = ['plain']
@@ -156,8 +170,7 @@ def print_graph(temp_heat, temp_score, to_be_printed, deton_params):
     fig.tight_layout()
     fig.set_size_inches(1920/100, 1080/100)
     plt.tight_layout()
-    #plt.savefig("./evaluate_results/hash_single_garbage.png")
-    plt.show()
+    plt.savefig("./evaluate_results/hash_single_garbage.png")
 
 
 def aggregator(score):
