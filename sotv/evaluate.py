@@ -40,11 +40,6 @@ def main():
         if key not in result.keys():
             result[key] = []
         result[key].append(funct(data, key))
-#        if isinstance(test, list):
-#            for lil_test in test:
-#                result[key].append(funct(lil_test))
-#        else:
-#            result[key].append(funct(test))
     temp_dict = {}
     for key in result.keys():
         if key != "plain":
@@ -56,24 +51,16 @@ def main():
     group_average(collection, deton_heat)
 
 
-def group_average(collection_score, heat, num_reg=32, num_tests=100, mode=True):
+def group_average(collection_score, heat, num_reg=32, conversion_f=3/4):
     subset_list = random.choice(test_registers, num_reg, False)
-    subset_list_2 = []
-    subset_list_4 = []
-    if mode:
-        subset_list_2 = list(combinations(subset_list, 2))
-        subset_list_4 = list(combinations(subset_list, 4))
-    else:
-        subset_list_2_t = list(combinations(test_registers, 2))
-        subset_list_4_t = list(combinations(test_registers, 4))
-        random.shuffle(subset_list_2_t)
-        random.shuffle(subset_list_4_t)
-        temp_list_2 = list(random.randint(low=0, high= len(subset_list_2_t), size=(num_tests, )))
-        temp_list_4 = list(random.randint(low=0, high= len(subset_list_4_t), size=(num_tests, )))
-        for num in temp_list_2:
-            subset_list_2.append(subset_list_2_t[num])
-        for num in temp_list_4:
-            subset_list_4.append(subset_list_4_t[num])
+    subset_list_2_t = list(combinations(test_registers, 2))
+    subset_list_4_t = list(combinations(test_registers, 4))
+    random.shuffle(subset_list_2_t)
+    random.shuffle(subset_list_4_t)
+    temp = int(conversion_f * len(subset_list_2_t))
+    subset_list_2 = subset_list_2_t[temp:]
+    temp = int(conversion_f * len(subset_list_4_t))
+    subset_list_4 = subset_list_4_t[temp:]
 
     temp_score = None
     temp_heat = None
