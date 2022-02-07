@@ -98,5 +98,5 @@ if __name__ == "__main__":
     entry_point = "main"
 
     #gen_compile()
-    #test_plain()
-    test_bulk()
+    test_plain()
+    #test_bulk()
