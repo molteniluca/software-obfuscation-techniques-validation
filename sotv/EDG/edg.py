@@ -92,14 +92,15 @@ def edg(name: str, executable_params: list, ignore_cache: bool = False, timeout=
         new_dump.append(line)
 
     dump = new_dump
-    instructions = parse_instructions(dump)
+    instructions = parse_instructions(dump, tid=thread_num)
 
     return ExecutionDump(instructions, dump)
 
 
-def parse_instructions(dump) -> Dict[str, Instruction]:
+def parse_instructions(dump, tid=0) -> Dict[str, Instruction]:
     """
     This function parses the instructions contained in an execution dump
+    @param tid: Thread id
     @param dump: The execution dump
     @return: The dictionary in which the keys are the instruction ref and the values are the parsed instructions
     """
@@ -115,9 +116,9 @@ def parse_instructions(dump) -> Dict[str, Instruction]:
     with open(tmp_folder + "instructions.asm", "w") as f:
         f.write(code)
 
-    utils.parse(tmp_folder + "instructions.asm", tmp_folder + "parsed_instruction.json")
+    utils.parse(tmp_folder + "instructions.asm", tmp_folder + "parsed_instruction" + str(tid) + ".json")
 
-    parsed_file = open(tmp_folder + "parsed_instruction.json", "r")
+    parsed_file = open(tmp_folder + "parsed_instruction" + str(tid) + ".json", "r")
     parsed = parsed_file.read()
     parsed = json.loads(parsed)
 
