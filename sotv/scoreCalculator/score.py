@@ -53,12 +53,17 @@ class Metrics:
         variables = {}
         old_percentage = 0
         i = 0
+        move_block_list = []
 
         for instruction in self.tracer.execution_dump.dump:
             if old_percentage < int(i / len(self.tracer.execution_dump.dump) * 100):
                 old_percentage = int(i / len(self.tracer.execution_dump.dump) * 100)
                 print("Progress: " + str(int(i / len(self.tracer.execution_dump.dump) * 100)) + "%")
             i += 1
+            if instruction.executed_instruction.opcode == "mv":
+                move_block_list.append(instruction.executed_instruction.r2)
+            elif instruction.executed_instruction.modified_register() in move_block_list:
+                move_block_list.remove(instruction.executed_instruction.modified_register())
             try:
                 registers_status = self.tracer.tracing_graph[instruction]
             except KeyError:
@@ -68,13 +73,14 @@ class Metrics:
                     lock(variables, registers_status)
                     if verify_is_update(variables, registers_status[reg]):
                         for var_name in registers_status[reg].keys():
-                            if verify_elem_in_dict(reg, self.metrics_heat, variables, var_name, registers_status):
-                                self.metrics_heat[reg][var_name] += 1
-                            else:
-                                try:
-                                    self.metrics_heat[reg][var_name] = 1
-                                except KeyError:
-                                    self.metrics_heat[reg] = {var_name: 1}
+                            if reg not in move_block_list:
+                                if verify_elem_in_dict(reg, self.metrics_heat, variables, var_name, registers_status):
+                                    self.metrics_heat[reg][var_name] += 1
+                                else:
+                                    try:
+                                        self.metrics_heat[reg][var_name] = 1
+                                    except KeyError:
+                                        self.metrics_heat[reg] = {var_name: 1}
 
 #    @deprecated
 #    use to track not correlated changes to the code
