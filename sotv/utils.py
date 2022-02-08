@@ -15,6 +15,15 @@ score_path = "./scoreCalculator/results_bulk/"
 
 
 def save_score(calc_score, DETON_score, name, obf_params, input_md5, obf_md5):
+    """
+    This function appends the score in to a json file
+    @param calc_score: The score calculated with our program
+    @param DETON_score: DETON's score
+    @param name: The filename
+    @param obf_params: The obfuscation params used
+    @param input_md5: The md5 hash of the input to distinguish it from the others
+    @param obf_md5: The md5 hash of the program to distinguish it from the others
+    """
     exp_name = name
 
     input_md5 = os.path.basename(input_md5)[-32:]
@@ -60,6 +69,13 @@ def save_score(calc_score, DETON_score, name, obf_params, input_md5, obf_md5):
 
 
 def compile_obf(input_path, obfuscator_params, O=0):
+    """
+    This function compiles with specified params an executable and checks its integrity
+    @param input_path: The c source file
+    @param obfuscator_params: The params to be sent to DETON
+    @param O: compiler optimization
+    """
+
     folder = os.path.dirname(input_path)
     obf_folder =  os.path.join(folder, "obfuscated")
 
@@ -99,6 +115,11 @@ def compile_obf(input_path, obfuscator_params, O=0):
 
 
 def file_md5(file_path):
+    """
+    Calculates the md5 hash of a file
+    @param file_path: The file path
+    @return: The hex representation of the digest
+    """
     md5_hash = hashlib.md5()
 
     with open(file_path, "rb") as f:
@@ -108,6 +129,12 @@ def file_md5(file_path):
 
 
 def test_integrity(plain, obf):
+    """
+    Tests the integrity of the obfuscated version by matching its output with the plain one
+    @param plain: The plain program
+    @param obf: The obfuscated program
+    @return: True if match and False if mismatch of outputs
+    """
     process1 = subprocess.Popen(plain, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out1, err1 = process1.communicate()
     process2 = subprocess.Popen(["timeout", "1"] + obf, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -117,6 +144,15 @@ def test_integrity(plain, obf):
 
 
 def run_dump(exec_params, ignore_cache=False, exclude=None, timeout=90000, thread_num=0):
+    """
+    Executes the dump
+    @param exec_params:The argv vector
+    @param ignore_cache: Whether to ignore or not the dump cache
+    @param exclude: Method to exclude from tracing
+    @param timeout: The timeout of execution
+    @param thread_num: The thread number for sycronism reasons
+    @return: The execution dump
+    """
     print("# EXECUTE DUMP #")
     start_time = time.time()
     plain_execution_dump = edg.edg(exec_params[0], exec_params, ignore_cache=ignore_cache, exclude=exclude, timeout=timeout, thread_num=thread_num)
@@ -125,6 +161,13 @@ def run_dump(exec_params, ignore_cache=False, exclude=None, timeout=90000, threa
 
 
 def run_trace(plain_execution_dump, symbols_elf, trace_no_symbols=True):
+    """
+    Runs the trace of the variables
+    @param plain_execution_dump: The execution dump
+    @param symbols_elf: The elf containing the variables
+    @param trace_no_symbols: Whether to trace or not variables with no symbols
+    @return: A tracer object
+    """
     print("# EXECUTE TRACE #\n")
     start_time = time.time()
     local_vars, global_vars, arrays = offset_finder.offset_finder(symbols_elf)
@@ -135,6 +178,11 @@ def run_trace(plain_execution_dump, symbols_elf, trace_no_symbols=True):
 
 
 def run_score(tracer):
+    """
+    Calculates the score with the presence of the variables
+    @param tracer: The tracer object
+    @return: The score metrics
+    """
     print("# CALCULATE SCORE #")
     start_time = time.time()
     metrics = Metrics(tracer)
@@ -143,10 +191,16 @@ def run_score(tracer):
     return metrics
 
 
-def execute_plain(source_file: str, compile_method=compile_program, args=[], exclude=None):
+def execute_plain(source_file: str, args=[], exclude=None):
+    """
+    Executes the plain program
+    @param source_file: The source file
+    @param args: Argv vector
+    @param exclude: Method to exclude from tracing
+    @return:
+    """
     sys.setrecursionlimit(10 ** 4)
 
-    asm = "out_no_symbols.s"
     folder = os.path.dirname(source_file)
     executable_elf = os.path.join(folder, "test.out")
 
@@ -158,6 +212,13 @@ def execute_plain(source_file: str, compile_method=compile_program, args=[], exc
 
 
 def execute_obfuscated_bench(obf_exec_params, symbols_elf="../test.out", thread_num=0):
+    """
+    Executes an obfuscated run
+    @param obf_exec_params: The argv vector
+    @param symbols_elf: The elf containing all the symbols
+    @param thread_num: The thread number for syncronization issues
+    @return: A trace and a DETON score metric
+    """
     sys.setrecursionlimit(10 ** 4)
 
     folder = os.path.dirname(obf_exec_params[0])

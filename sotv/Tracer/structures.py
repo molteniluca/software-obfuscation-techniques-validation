@@ -1,23 +1,5 @@
-"""
-Provide the common structures necessary for syntactic and semantic interpretation of the parsed code.
-
-This module contains a collection of data structures which are used in other parts of the package that must interpret in
-some way the contents of some assembly statements or assembler source.
-The information contained in this module describes things such as the formal arguments of the statements, the format of
-instructions, etc.
-
-Structures:
-Register -- an enumeration of the 32 unprivileged RISC-V integer registers
-opcodes -- a dictionary containing information about the number of arguments of each supported instruction, and whether
-           or not they are read-only
-imm_sizes -- a dictionary associating instruction formats possessing an immediate field with the bit size of such field
-"""
-
 from enum import Enum
 from typing import Mapping, Tuple
-
-
-# An enumeration of the 32 unprivileged RISC-V integer registers
 from sotv.Tracer.instruction_adapter import MoveAdapter
 
 
@@ -67,7 +49,8 @@ class Register(Enum):
 # This is a classification of all the possible opcodes.
 # Each opcode is paired with a tuple (<int>, <boolean>) where the int value represents the number of registers used
 # by that specific opcode, the boolean value instead tells if we are dealing with a write function (True)
-# or a read only one (False)
+# or a read only one (False).
+# If the instruction needs a custom instruction adapter it can be specified in the third parameter.
 opcodes: Mapping[str, Tuple[int, bool, type]] = {
     'lui': (1, True), 'auipc': (1, True), 'jal': (1, True), 'jalr': (2, True), 'lb': (2, True), 'lh': (2, True),
     'lw': (2, True), 'lbu': (2, True), 'lhu': (2, True), 'addi': (2, True), 'slti': (2, True),
@@ -98,7 +81,7 @@ registers = ["ra", "sp", "gp", "tp", "t0", "t1", "t2", "t3", "t4", "t5", "t6", "
              "s5", "s6", "s7", "s8", "s9", "s10", "s11", "a0", "a1", "a2", "a3", "a4", "a5", "a6", "a7",
              "zero", "reg_err", "unused"]
 
-not_trash_registers = ["gp", "tp", "zero"]
+non_trash_registers = ["gp", "tp", "zero"]
 
 ignored_registers = ["s0", "ra"]
 
