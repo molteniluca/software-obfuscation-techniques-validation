@@ -1,7 +1,7 @@
 """"
 This interface handle the tracing after a specific type of instruction
 """
-from sotv.Tracer.structures import load_opcodes, store_opcodes
+from sotv.Tracer.defines import load_opcodes, store_opcodes
 
 
 class AdapterInterface:

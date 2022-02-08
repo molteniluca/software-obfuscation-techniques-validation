@@ -124,8 +124,8 @@ def group_average(collection_score, heat, num_reg=32, conversion_f=3/4):
     to_be_printed = ["AVG_1", "AVG_2", "AVG_4"]
     deton_params = ['plain']
     deton_params += ['0_0_1_1', '0_0_10_1', '0_0_20_1', '0_0_30_1', '0_0_40_1', '0_0_50_1']
-    deton_params += ['0_1_0_1', '0_2_0_1', '0_3_0_1', '0_4_0_1']
-    deton_params += ['0_1_10_1', '0_2_20_1', '0_3_30_1']
+    #deton_params += ['0_1_0_1', '0_2_0_1', '0_3_0_1', '0_4_0_1']
+    #deton_params += ['0_1_10_1', '0_2_20_1', '0_3_30_1']
 
     print_graph(temp_heat, temp_score, to_be_printed, deton_params)
 
